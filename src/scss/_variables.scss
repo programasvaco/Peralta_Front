@@ -1,84 +1,137 @@
 // ========================================
-// ABARROTES MARIA — red dominant UI
+// GUEVARA — Comercializadora de Jitomates
+// v3 — paleta clara y descansada
+// Inspiración: la caja es BLANCA, el rojo es acento
 // ========================================
 
-// Brand
-$maria-red: #B3262E;        // rojo principal (más profundo, menos chillón)
-$maria-red-dark: #7A1A1F;   // para gradientes y estados activos
-$maria-red-soft: #F6DADA;   // fondos suaves
+// ── Brand tokens ──────────────────────────────────────────────────────────────
+$guevara-red:        #C0201F;   // rojo logo — color de acento principal
+$guevara-red-dark:   #8B0E0E;   // hover / estados activos
+$guevara-red-soft:   #FAEAEA;   // fondos suaves / alertas light
 
-$maria-blue: #1E3A8A;
-$maria-blue-light: #2F5AC7;
+$guevara-green:      #2E6B35;   // verde hojas del jitomate
+$guevara-green-light:#4A9A52;
+$guevara-green-soft: #EAF3EB;
 
-$maria-yellow: #F2C94C;
-$maria-green: #3A7D44;
+$guevara-amber:      #C97D0A;   // ámbar cálido (KPI compras)
+$guevara-blue:       #2C5282;   // azul corporativo (KPI tickets)
 
-$maria-cream: #FDFBF5;
-$maria-text: #2A2A2A;
+// Escala de grises CÁLIDOS (tiro hacia beige, no azulado)
+$guevara-warm-50:    #FAFAF8;   // body background — casi blanco
+$guevara-warm-100:   #EDE8E1;   // sidebar — más diferenciado del body
+$guevara-warm-200:   #E8E3DB;   // bordes, separadores
+$guevara-warm-300:   #CEC7BC;   // placeholder / iconos inactivos
+$guevara-warm-700:   #5A534A;   // textos secundarios
+$guevara-warm-900:   #2A2520;   // texto principal
 
-
-// ========================================
-// Bootstrap overrides
-// ========================================
-$primary: $maria-red;
-$success: $maria-green;
-$warning: $maria-yellow;
-$danger: $maria-red-dark;
-
-$body-bg: $maria-cream;
-$body-color: $maria-text;
+$guevara-white: #FFFFFF;
 
 
-// ========================================
-// Cards
-// ========================================
-$card-border-radius: 1rem;
-$card-bg: #FFFFFF;
+// ── Bootstrap overrides ───────────────────────────────────────────────────────
+$primary:   $guevara-red;
+$secondary: $guevara-warm-700;
+$success:   $guevara-green;
+$warning:   $guevara-amber;
+$danger:    $guevara-red-dark;
+$info:      $guevara-blue;
+
+$body-bg:    $guevara-warm-50;
+$body-color: $guevara-warm-900;
 
 
-// ========================================
-// Sidebar (CoreUI) 🔴 ROJO TOTAL
-// ========================================
-$sidebar-bg: linear-gradient(180deg, $maria-red 0%, $maria-red-dark 100%);
-$sidebar-color: #FFFFFF;
+// ── Cards ─────────────────────────────────────────────────────────────────────
+$card-border-radius: 0.875rem;
+$card-bg:            $guevara-white;
+$card-border-color:  $guevara-warm-200;
+$card-box-shadow:    0 1px 3px rgba(0, 0, 0, 0.06);
 
-$sidebar-nav-link-color: rgba(255, 255, 255, 0.85);
-$sidebar-nav-link-hover-color: #FFFFFF;
-$sidebar-nav-link-hover-bg: rgba(255, 255, 255, 0.10);
-
-$sidebar-nav-link-active-color: #FFFFFF;
-$sidebar-nav-link-active-bg: rgba(255, 255, 255, 0.20);
+$kpi-ventas-hoy-bg:  $guevara-red;
+$kpi-ventas-mes-bg:  $guevara-green;
+$kpi-tickets-bg:     $guevara-blue;
+$kpi-compras-bg:     $guevara-amber;
 
 
-// ========================================
-// Header
-// ========================================
-$header-bg: #FFFFFF;
-$header-color: $maria-text;
-$header-border-color: rgba(211, 47, 47, 0.15);
+// ── Sidebar — gris cálido claro (LIGHT sidebar) ───────────────────────────────
+// La caja Guevara es blanca → sidebar claro, rojo solo como acento
+$sidebar-bg:    $guevara-warm-100;
+$sidebar-color: $guevara-warm-900;
+
+$sidebar-nav-title-color: $guevara-warm-700;   // etiquetas de grupo legibles   // etiquetas de grupo discretas
+
+$sidebar-nav-link-color:            $guevara-warm-700;
+$sidebar-nav-link-icon-color:       $guevara-warm-700;   // íconos visibles
+$sidebar-nav-link-hover-color:      $guevara-warm-900;
+$sidebar-nav-link-hover-bg:         $guevara-warm-200;
+$sidebar-nav-link-hover-icon-color: $guevara-red;
+
+// Activo: fondo rojo suave, texto rojo — no letras blancas sobre rojo
+$sidebar-nav-link-active-color:      $guevara-red;
+$sidebar-nav-link-active-icon-color: $guevara-red;
+$sidebar-nav-link-active-bg:         $guevara-red-soft;
+
+// Franja brand — blanco con borde inferior rojo
+$sidebar-brand-bg:          $guevara-white;
+$sidebar-brand-color:       $guevara-warm-900;
+$sidebar-brand-hover-color: $guevara-warm-700;
+$sidebar-border-color:      $guevara-warm-200;
 
 
-// ========================================
-// Elementos secundarios → AZUL
-// ========================================
-$link-color: $maria-blue;
-$link-hover-color: $maria-blue-light;
+// ── Header ────────────────────────────────────────────────────────────────────
+// Blanco limpio, borde inferior rojo sutil — no header oscuro
+$header-bg:           $guevara-white;
+$header-color:        $guevara-warm-900;
+$header-border-color: $guevara-warm-200;
+$header-box-shadow:   0 1px 0 $guevara-warm-200, 0 2px 4px rgba(0,0,0,0.04);   // separación suave
 
-$btn-secondary-bg: $maria-blue;
-$btn-secondary-border-color: $maria-blue;
-$btn-secondary-color: #FFFFFF;
+// Línea de acento roja debajo del header (1px)
+$header-accent-line: $guevara-red;
+
+$breadcrumb-color:         $guevara-warm-700;
+$breadcrumb-active-color:  $guevara-warm-900;
+$breadcrumb-divider-color: $guevara-warm-300;
+
+$header-nav-link-color:       $guevara-warm-700;
+$header-nav-link-hover-color: $guevara-red;
 
 
-// ========================================
-// Extras POS
-// ========================================
-$accent: $maria-yellow;
-$price-color: $maria-green;
+// ── Botones ───────────────────────────────────────────────────────────────────
+$btn-primary-bg:           $guevara-red;
+$btn-primary-border-color: $guevara-red;
+$btn-primary-color:        $guevara-white;
+$btn-primary-hover-bg:     $guevara-red-dark;
 
-$border-color: #E5E7EB;
+$btn-secondary-bg:           $guevara-warm-200;
+$btn-secondary-border-color: $guevara-warm-200;
+$btn-secondary-color:        $guevara-warm-900;
 
-$danger-soft: $maria-red-soft;
-$success-soft: #E8F5E9;
+
+// ── Links ─────────────────────────────────────────────────────────────────────
+$link-color:       $guevara-red;
+$link-hover-color: $guevara-red-dark;
+
+
+// ── Formularios ───────────────────────────────────────────────────────────────
+$input-bg:                $guevara-white;
+$input-border-color:      $guevara-warm-200;
+$input-focus-border-color: rgba(192, 32, 31, 0.50);
+$input-focus-box-shadow:   0 0 0 0.2rem rgba(192, 32, 31, 0.12);
+$input-placeholder-color:  $guevara-warm-300;
+
+
+// ── Panel login ───────────────────────────────────────────────────────────────
+$login-panel-bg:    linear-gradient(135deg, $guevara-red 0%, $guevara-red-dark 100%);
+$login-panel-color: $guevara-white;
+
+
+// ── Extras POS ───────────────────────────────────────────────────────────────
+$accent:       $guevara-red;
+$price-color:  $guevara-green;
+$border-color: $guevara-warm-200;
+
+$danger-soft:  $guevara-red-soft;
+$success-soft: $guevara-green-soft;
+
+$ticket-total-color: $guevara-red;
 
 
 // ========================================
