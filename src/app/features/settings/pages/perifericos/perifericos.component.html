@@ -1,1 +1,135 @@
-<p>perifericos works!</p>
+<div class="peri-page">
+
+  <div class="peri-header">
+    <h2>Periféricos</h2>
+    <small class="text-muted">Configuración / Periféricos</small>
+  </div>
+
+  <!-- Agente de impresión -->
+  <div class="peri-card">
+
+    <div class="peri-card-title">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="6 9 6 2 18 2 18 9"></polyline>
+        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+        <rect x="6" y="14" width="12" height="8"></rect>
+      </svg>
+      Agente de impresión
+    </div>
+
+    <p class="peri-card-desc">
+      Servicio local que corre en el equipo del mostrador y se comunica con la impresora USB.
+      Todos los dispositivos de la misma red envían los tickets a este agente.
+    </p>
+
+    <!-- Estado actual -->
+    <div class="peri-status-row">
+      <span class="peri-status-dot"
+        [class.dot-ok]="printerSvc.isConnected()"
+        [class.dot-off]="!printerSvc.isConnected()">
+      </span>
+      <span class="peri-status-label">
+        {{ printerSvc.isConnected() ? 'Conectado' : 'Sin conexión' }}
+      </span>
+      <span class="peri-status-url text-muted">— {{ printerSvc.agentUrl() }}</span>
+    </div>
+
+    <!-- Formulario -->
+    <div class="peri-form">
+      <label class="form-label">URL del agente</label>
+      <div class="input-group">
+        <input
+          type="text"
+          class="form-control"
+          [value]="agentUrlDraft()"
+          (input)="onUrlInput($any($event.target).value)"
+          placeholder="http://192.168.1.10:8183"
+          spellcheck="false"
+        />
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          (click)="testConnection()"
+          [disabled]="pinging()"
+        >
+          {{ pinging() ? 'Probando...' : 'Probar' }}
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="save()"
+        >
+          Guardar
+        </button>
+      </div>
+
+      <!-- Resultado del ping -->
+      <div class="peri-ping-result peri-ping-ok" *ngIf="pingResult() === 'ok'">
+        Agente respondió correctamente.
+      </div>
+      <div class="peri-ping-result peri-ping-err" *ngIf="pingResult() === 'error'">
+        No se pudo conectar. Verifica que el agente esté corriendo en esa dirección.
+      </div>
+      <div class="peri-ping-result peri-ping-ok" *ngIf="saved() && pingResult() === null">
+        URL guardada.
+      </div>
+    </div>
+
+    <!-- Descarga -->
+    <div class="peri-download-row">
+      <a class="btn btn-outline-primary btn-sm" href="/downloads/print-agent.exe" download>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          style="margin-right:5px">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        Descargar print-agent.exe
+      </a>
+      <span class="text-muted" style="font-size:.8rem">v1.2.0 · Solo Windows · ~40 MB</span>
+    </div>
+
+    <!-- Instrucciones -->
+    <div class="peri-instructions">
+      <div class="peri-inst-title">Cómo instalar el agente</div>
+      <ol class="peri-inst-list">
+        <li>
+          Descarga <strong>print-agent.exe</strong> y cópialo al equipo del mostrador,
+          por ejemplo en <code>C:\PrintAgent\</code>.
+        </li>
+        <li>
+          Crea el archivo <code>print-agent.config.json</code> en la misma carpeta y escribe
+          el nombre exacto de la impresora tal como aparece en Windows
+          (<em>Panel de control → Dispositivos e impresoras</em>):
+          <pre class="peri-code">&#123;
+  "httpPort": 8183,
+  "printerTarget": "PRINTER:Nombre de la impresora"
+&#125;</pre>
+          También puedes usar IP de red <code>"192.168.1.100:9100"</code> o puerto serie <code>"COM3"</code>.
+        </li>
+        <li>
+          Abre <strong>CMD o PowerShell como Administrador</strong> y ejecuta:
+          <pre class="peri-code">C:\PrintAgent\print-agent.exe install</pre>
+          Esto crea una <strong>tarea programada</strong> que arranca el agente automáticamente
+          con Windows, incluso sin iniciar sesión.
+        </li>
+        <li>
+          Pulsa <strong>Probar</strong> en esta pantalla para verificar que el agente responde.
+          Si todo está bien verás el mensaje <em>"Agente respondió correctamente"</em>.
+        </li>
+        <li>
+          URL según el dispositivo que accede:<br />
+          · Mismo equipo del mostrador → <code>http://localhost:8183</code><br />
+          · Tablets / celulares en la misma red → <code>http://&lt;IP-del-mostrador&gt;:8183</code>
+          &nbsp;<span class="text-muted">(ej. <code>http://192.168.1.10:8183</code>)</span>
+        </li>
+        <li>
+          Para desinstalar, abre CMD como Administrador y ejecuta:
+          <pre class="peri-code">C:\PrintAgent\print-agent.exe uninstall</pre>
+        </li>
+      </ol>
+    </div>
+
+  </div>
+
+</div>

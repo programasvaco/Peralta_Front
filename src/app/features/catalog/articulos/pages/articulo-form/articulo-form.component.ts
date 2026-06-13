@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { environment } from '../../../../../../../src/enviroments/environment';
 import { Categoria } from '../../data/articulos.models';
 import { ArticulosService } from '../../data/articulos.service';
 import { CategoriasService } from '../../data/categorias.service';
@@ -84,7 +85,7 @@ export class ArticuloFormComponent {
           activo: !!a?.activo,
           orden: a?.orden ?? null,
         });
-        this.imagenActual.set(a?.imagen ?? null);
+        this.imagenActual.set(a?.imagen ? `${environment.apiBaseUrl}/storage/${a.imagen}` : null);
         this.fieldErrors.set({});
         this.loading.set(false);
       },

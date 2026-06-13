@@ -212,11 +212,9 @@ export class PosVentaComponent {
   lastVentaId = signal<number | null>(null);
   printing = signal(false);
   showPrintDialog = signal(false);
-  showPrinterPicker = signal(false);
-  printers = signal<string[]>([]);
-  loadingPrinters = signal(false);
 
   printCopies = signal<number>(Number(localStorage.getItem('pos_print_copies')) || 0);
+  tileSize    = signal<number>(Number(localStorage.getItem('pos_tile_size'))    || 150);
 
   confirmOpen = signal(false);
   confirmTitle = signal('Confirmar acción');
@@ -461,7 +459,7 @@ export class PosVentaComponent {
   }
 
   imgSrc(a: any): string {
-    return `http://${a.imagen_url}`
+    return `${environment.apiBaseUrl}/storage/${a.imagen}`;
   }
 
   selectArticulo(a: any) {
@@ -938,18 +936,20 @@ export class PosVentaComponent {
         this.selectedArticulo.set(null);
 
         this.clientesFound.set([]);
-        this.clienteNombreCtrl.setValue('', { emitEvent: false });
         this.clienteQuery.set('');
         this.clienteDropdownOpen.set(false);
 
         this.form.reset({
           fecha: this.today(),
           almacen_id: keepAlmacen,
-          cliente_id: null,
+          cliente_id: environment.clienteMostrador,
           f_pago_id: keepPago,
           credito: false,
           dias_credito: null,
         });
+
+        const clienteDefault = this.clientes().find(c => c.id === environment.clienteMostrador);
+        this.clienteNombreCtrl.setValue(clienteDefault?.nombre ?? '', { emitEvent: false });
       },
       error: (err) => {
         this.saving.set(false);
@@ -969,12 +969,6 @@ export class PosVentaComponent {
   printTicket(ventaId: number | null = this.lastVentaId(), copies = 0) {
     if (!ventaId) return;
 
-    // Si no hay impresora guardada, abrir el selector primero
-    if (!this.printerSvc.printerName()) {
-      this.openPrinterPicker(ventaId);
-      return;
-    }
-
     this.printing.set(true);
 
     this.ventasSvc.getTicket(ventaId, 48).subscribe({
@@ -986,18 +980,10 @@ export class PosVentaComponent {
           }
           this.banner.set({ type: 'success', text: 'Ticket enviado a la impresora.' });
         } catch (err: any) {
-          if (err?.message === 'NO_PRINTER') {
-            this.openPrinterPicker(ventaId);
-          } else {
-            const msg: string = err?.message ?? '';
-            const qzOffline = msg.includes('Unable to establish') || msg.includes('websocket');
-            this.banner.set({
-              type: 'danger',
-              text: qzOffline
-                ? 'QZ Tray no está corriendo. Ábrelo e intenta de nuevo.'
-                : (msg || 'Error al enviar a la impresora.'),
-            });
-          }
+          this.banner.set({
+            type: 'danger',
+            text: err?.message ?? 'Error al enviar a la impresora.',
+          });
         } finally {
           this.printing.set(false);
         }
@@ -1009,35 +995,9 @@ export class PosVentaComponent {
     });
   }
 
-  openPrinterPicker(ventaId?: number | null) {
-    this.loadingPrinters.set(true);
-    this.showPrinterPicker.set(true);
-
-    this.printerSvc.getPrinters().then((list) => {
-      this.printers.set(list);
-      this.loadingPrinters.set(false);
-    }).catch((err: any) => {
-      this.loadingPrinters.set(false);
-      this.showPrinterPicker.set(false);
-      const msg: string = err?.message ?? '';
-      const qzOffline = msg.includes('Unable to establish') || msg.includes('websocket');
-      this.banner.set({
-        type: 'danger',
-        text: qzOffline
-          ? 'QZ Tray no está corriendo. Ábrelo e intenta de nuevo.'
-          : (msg || 'No se pudo conectar a QZ Tray.'),
-      });
-    });
-  }
-
-  selectPrinter(name: string, ventaId: number | null = this.lastVentaId()) {
-    this.printerSvc.setPrinter(name);
-    this.showPrinterPicker.set(false);
-    if (ventaId) this.printTicket(ventaId);
-  }
-
-  closePrinterPicker() {
-    this.showPrinterPicker.set(false);
+  onTileSizeChange(v: number) {
+    this.tileSize.set(v);
+    localStorage.setItem('pos_tile_size', String(v));
   }
 
   confirmPrint() {

@@ -1,0 +1,22 @@
+{
+  "name": "print-agent",
+  "version": "1.0.0",
+  "description": "Agente de impresión local para Abarrotes María POS",
+  "main": "print-agent.js",
+  "scripts": {
+    "start": "node print-agent.js",
+    "build": "pkg . --targets node18-win-x64 --output dist/print-agent.exe --compress GZip",
+    "build:upload": "npm run build && aws s3 cp dist/print-agent.exe s3://$S3_BUCKET/downloads/print-agent.exe --content-type application/octet-stream"
+  },
+  "bin": "print-agent.js",
+  "pkg": {
+    "targets": [
+      "node18-win-x64"
+    ],
+    "outputPath": "dist",
+    "compress": "GZip"
+  },
+  "devDependencies": {
+    "@yao-pkg/pkg": "^5.12.0"
+  }
+}

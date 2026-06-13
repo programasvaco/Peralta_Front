@@ -351,6 +351,25 @@
   gap: 10px;
 }
 
+.catalog-size-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-top: 1px solid var(--cui-border-color, #dee2e6);
+  background: var(--cui-body-bg, #f8f9fa);
+  flex-shrink: 0;
+
+  svg { opacity: .45; flex-shrink: 0; }
+}
+
+.catalog-size-slider {
+  flex: 1;
+  accent-color: var(--cui-primary, #321fdb);
+  cursor: pointer;
+  height: 4px;
+}
+
 .search-row {
   width: 100%;
 }

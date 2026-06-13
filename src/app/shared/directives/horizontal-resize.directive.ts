@@ -27,8 +27,10 @@ export class HorizontalResizeDirective implements OnDestroy {
   private startX = 0;
   private startLeftPct = 0;
 
-  private readonly onMove = (e: MouseEvent) => this.handleMove(e);
-  private readonly onUp   = ()              => this.stopDrag();
+  private readonly onMove       = (e: MouseEvent) => this.handleMove(e);
+  private readonly onUp         = ()              => this.stopDrag();
+  private readonly onTouchMove  = (e: TouchEvent) => this.handleTouchMove(e);
+  private readonly onTouchEnd   = ()              => this.stopDrag();
 
   constructor(private el: ElementRef<HTMLElement>) {}
 
@@ -37,22 +39,46 @@ export class HorizontalResizeDirective implements OnDestroy {
     if (e.button !== 0) return;
     e.preventDefault();
 
-    this.dragging  = true;
-    this.startX    = e.clientX;
-    this.startLeftPct = this.currentLeftPct();
-
+    this.startDrag(e.clientX);
     document.addEventListener('mousemove', this.onMove);
     document.addEventListener('mouseup',   this.onUp);
     document.body.style.cursor     = 'col-resize';
     document.body.style.userSelect = 'none';
   }
 
+  @HostListener('touchstart', ['$event'])
+  onTouchStart(e: TouchEvent) {
+    if (e.touches.length !== 1) return;
+    e.preventDefault();
+
+    this.startDrag(e.touches[0].clientX);
+    document.addEventListener('touchmove',   this.onTouchMove, { passive: false });
+    document.addEventListener('touchend',    this.onTouchEnd);
+    document.addEventListener('touchcancel', this.onTouchEnd);
+  }
+
+  private startDrag(clientX: number) {
+    this.dragging      = true;
+    this.startX        = clientX;
+    this.startLeftPct  = this.currentLeftPct();
+  }
+
   private handleMove(e: MouseEvent) {
     if (!this.dragging) return;
+    this.applyDelta(e.clientX);
+  }
+
+  private handleTouchMove(e: TouchEvent) {
+    if (!this.dragging || e.touches.length !== 1) return;
+    e.preventDefault();
+    this.applyDelta(e.touches[0].clientX);
+  }
+
+  private applyDelta(clientX: number) {
     const containerW = this.container.offsetWidth;
     if (!containerW) return;
 
-    const dx       = e.clientX - this.startX;
+    const dx       = clientX - this.startX;
     const deltaPct = (dx / containerW) * 100;
     const newLeft  = Math.min(this.resizeMax, Math.max(this.resizeMin, this.startLeftPct + deltaPct));
 
@@ -61,8 +87,11 @@ export class HorizontalResizeDirective implements OnDestroy {
 
   private stopDrag() {
     this.dragging = false;
-    document.removeEventListener('mousemove', this.onMove);
-    document.removeEventListener('mouseup',   this.onUp);
+    document.removeEventListener('mousemove',   this.onMove);
+    document.removeEventListener('mouseup',     this.onUp);
+    document.removeEventListener('touchmove',   this.onTouchMove);
+    document.removeEventListener('touchend',    this.onTouchEnd);
+    document.removeEventListener('touchcancel', this.onTouchEnd);
     document.body.style.cursor     = '';
     document.body.style.userSelect = '';
   }
