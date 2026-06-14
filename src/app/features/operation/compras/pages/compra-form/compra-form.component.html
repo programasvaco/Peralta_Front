@@ -144,7 +144,7 @@
                         <input
                           class="form-control"
                           type="text"
-                          [value]="articuloNombres[i]"
+                          [value]="articuloNombre(i)"
                           (input)="onArticuloInput(i, $any($event.target).value)"
                           (focus)="onArticuloFocus(i)"
                           (blur)="onArticuloBlur(i)"

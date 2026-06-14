@@ -22,7 +22,7 @@ export const routes: Routes = [
   },
   {
     path: ':id/ver',
-    canMatch: [permissionMatch('compras.editar')],
+    canMatch: [permissionMatch('compras.ver')],
     data: { title: 'Detalle de Compra' },
     loadComponent: () =>
       import('./pages/compra-form/compra-form.component').then(

@@ -24,6 +24,13 @@
   box-shadow: 0 .125rem .25rem rgba(0,0,0,.04);
 }
 
+.col-sticky-right {
+  position: sticky;
+  right: 0;
+  background: var(--cui-card-bg, #fff);
+  z-index: 1;
+}
+
 @media (max-width: 768px) {
   .crud-header { flex-direction:column; align-items:stretch; }
   .crud-pagination { margin-left:0; }

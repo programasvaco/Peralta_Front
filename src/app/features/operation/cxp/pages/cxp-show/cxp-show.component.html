@@ -80,6 +80,33 @@
       </div>
     </div>
 
+    <!-- Artículos de la compra -->
+    <div class="cxp-card" *ngIf="c.compra?.detalles && c.compra!.detalles!.length > 0">
+      <h5 class="mb-3">Artículos — Compra #{{ c.compra_id }}</h5>
+      <div class="table-responsive">
+        <table cTable class="table table-sm align-middle">
+          <thead>
+            <tr>
+              <th>Artículo</th>
+              <th>Variedad</th>
+              <th class="text-end">Cantidad</th>
+              <th class="text-end">Costo</th>
+              <th class="text-end">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let d of c.compra!.detalles!">
+              <td>{{ d.articulo?.nombre || ('Art. #' + d.articulo_id) }}</td>
+              <td>{{ d.variedad || '—' }}</td>
+              <td class="text-end">{{ d.cantidad }}</td>
+              <td class="text-end">{{ d.costo | number:'1.2-2' }}</td>
+              <td class="text-end fw-semibold">{{ (d.cantidad * d.costo) | number:'1.2-2' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- Historial de movimientos -->
     <div class="cxp-card" *ngIf="c.detalles && c.detalles.length > 0">
       <h5 class="mb-3">Historial de movimientos</h5>

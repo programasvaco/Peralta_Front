@@ -16,6 +16,16 @@ export interface CxpDetalle {
   forma_pago?: { id: number; descripcion: string } | null;
 }
 
+export interface CompraDetalleRef {
+  id: number;
+  articulo_id: number;
+  variedad?: string | null;
+  cantidad: number;
+  costo: number;
+  impuestos?: number | null;
+  articulo?: { id: number; nombre: string } | null;
+}
+
 export interface CtaXPagar {
   id: number;
   fecha: string;
@@ -26,7 +36,12 @@ export interface CtaXPagar {
   saldo: number;
 
   proveedor?: { id: number; nombre: string } | null;
-  compra?: { id: number; fecha: string } | null;
+  compra?: {
+    id: number;
+    fecha: string;
+    total?: number;
+    detalles?: CompraDetalleRef[];
+  } | null;
   detalles?: CxpDetalle[];
 }
 

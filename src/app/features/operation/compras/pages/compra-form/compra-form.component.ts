@@ -227,6 +227,14 @@ export class CompraFormComponent {
     this.recalcTotals();
   }
 
+  articuloNombre(i: number): string {
+    const nombre = this.articuloNombres[i];
+    if (nombre) return nombre;
+    const id = this.detalles.at(i).get('articulo_id')?.value;
+    if (!id) return '';
+    return this.articulos().find(a => a.id === id)?.nombre ?? '';
+  }
+
   getArticulosFiltrados(i: number): Articulo[] {
     const q = (this.articuloNombres[i] ?? '').toLowerCase().trim();
     if (!q) return this.articulos().slice(0, 20);

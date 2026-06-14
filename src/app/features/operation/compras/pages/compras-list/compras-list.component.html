@@ -71,7 +71,7 @@
             <th>Proveedor</th>
             <th class="text-end">Total</th>
             <th style="width: 120px;">Estatus</th>
-            <th style="width: 90px;"></th>
+            <th class="col-sticky-right" style="width: 90px;"></th>
           </tr>
         </thead>
 
@@ -93,8 +93,8 @@
                 {{ labelStatus(x.estatus) }}
               </c-badge>
             </td>
-            <td class="text-end">
-              <button class="btn btn-light btn-sm" type="button" (click)="open(x)" *hasPermission="'compras.editar'">
+            <td class="text-end col-sticky-right">
+              <button class="btn btn-light btn-sm" type="button" (click)="open(x)" *hasPermission="'compras.ver'">
                 Ver
               </button>
             </td>

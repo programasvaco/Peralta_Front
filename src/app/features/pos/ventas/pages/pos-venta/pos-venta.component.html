@@ -84,7 +84,7 @@
           <div class="catalog-box" (scroll)="onGridScroll($event)">
             <div *ngIf="gridLoading()" class="muted big">Cargando catálogo...</div>
 
-            <div class="art-grid" *ngIf="!gridLoading()">
+            <div class="art-grid" *ngIf="!gridLoading()" [style.grid-template-columns]="'repeat(auto-fill, minmax(' + tileSize() + 'px, 1fr))'">
               <button type="button" class="art-tile" *ngFor="let a of gridItems(); trackBy: trackByArticuloId"
                 (click)="selectArticulo(a)" [class.art-tile-image]="a.imagen" [class.art-tile-text]="!a.imagen">
 

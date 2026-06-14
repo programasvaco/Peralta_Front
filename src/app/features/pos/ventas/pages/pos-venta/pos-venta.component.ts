@@ -505,10 +505,12 @@ export class PosVentaComponent {
         next: (rows) => {
           this.lotes.set(rows ?? []);
           this.loadingLotes.set(false);
-          if (rows?.length) {
+          if (!rows?.length) {
+            this.banner.set({ type: 'danger', text: 'Sin existencia disponible para este artículo.' });
+          } else if (rows.length === 1) {
             this.selectLote(rows[0]);
           } else {
-            this.banner.set({ type: 'danger', text: 'Sin existencia disponible para este artículo.' });
+            this.showLotesModal.set(true);
           }
         },
         error: (err) => {
