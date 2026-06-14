@@ -1,0 +1,190 @@
+<c-modal [visible]="visible" (visibleChange)="visibleChange.emit($event)" size="lg">
+
+  <c-modal-header>
+    <h5 class="modal-title">Registrar movimiento de empaque</h5>
+  </c-modal-header>
+
+  <!-- ── Estado: guardado ──────────────────────────────────────────────── -->
+  <ng-container *ngIf="savedMovimiento() as mov">
+    <c-modal-body>
+      <div class="saved-state">
+        <div class="saved-icon">✓</div>
+        <p class="saved-title">Movimiento registrado</p>
+        <p class="saved-folio">Folio: <strong>{{ mov.folio }}</strong></p>
+        <p class="saved-detail">
+          {{ mov.tipo === 'salida' ? 'Salida (préstamo)' : 'Entrada (devolución)' }}
+          · {{ mov.cantidad | number:'1.0-0' }} empaque(s)<br />
+          Cliente: {{ mov.cliente?.nombre }}
+        </p>
+        <p class="saved-hint">¿Deseas imprimir el ticket?</p>
+      </div>
+    </c-modal-body>
+
+    <c-modal-footer>
+      <button cButton color="secondary" variant="outline" (click)="close()" [disabled]="printing()">
+        Cerrar sin imprimir
+      </button>
+      <button cButton color="primary" (click)="printTicket()" [disabled]="printing()">
+        {{ printing() ? 'Imprimiendo…' : 'Imprimir ticket' }}
+      </button>
+    </c-modal-footer>
+  </ng-container>
+
+  <!-- ── Estado: formulario ────────────────────────────────────────────── -->
+  <ng-container *ngIf="!savedMovimiento()">
+    <c-modal-body>
+      <form [formGroup]="form" (ngSubmit)="submit()">
+
+        <!-- ── Fecha + Tipo ──────────────────────────────────────────── -->
+        <div class="row g-3 mb-4">
+
+          <div class="col-sm-5">
+            <label class="form-label fw-semibold">Fecha <span class="text-danger">*</span></label>
+            <input
+              type="date"
+              class="form-control"
+              formControlName="fecha"
+              [class.is-invalid]="isInvalid('fecha')"
+            />
+            <div class="invalid-feedback">{{ errorText('fecha') ?? backendError('fecha') }}</div>
+          </div>
+
+          <div class="col-sm-7">
+            <label class="form-label fw-semibold">Tipo <span class="text-danger">*</span></label>
+            <div class="tipo-toggle">
+              <label class="tipo-opt" [class.active-salida]="tipoActual === 'salida'">
+                <input type="radio" formControlName="tipo" value="salida" />
+                Salida&nbsp;<small>(préstamo)</small>
+              </label>
+              <label class="tipo-opt" [class.active-entrada]="tipoActual === 'entrada'">
+                <input type="radio" formControlName="tipo" value="entrada" />
+                Entrada&nbsp;<small>(devolución)</small>
+              </label>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ── Cliente ──────────────────────────────────────────────── -->
+        <div class="mb-4">
+          <label class="form-label fw-semibold">
+            Cliente <span class="text-danger">*</span>
+          </label>
+
+          <div class="cliente-picker">
+            <div class="cliente-input-wrap">
+              <input
+                type="text"
+                class="form-control"
+                [class.is-invalid]="isInvalid('cliente_id')"
+                placeholder="{{ clientesLoading() ? 'Cargando clientes…' : 'Buscar cliente…' }}"
+                [value]="clienteNombreText()"
+                (input)="onClienteInput($any($event.target).value)"
+                (focus)="onClienteFocus()"
+                (blur)="onClienteBlur()"
+                autocomplete="off"
+                [disabled]="clientesLoading()"
+              />
+              <button
+                *ngIf="form.value.cliente_id"
+                type="button"
+                class="cliente-clear"
+                (mousedown)="onClienteClear()"
+                title="Quitar cliente"
+              >✕</button>
+            </div>
+
+            <ul *ngIf="clienteDropdownOpen() && filteredClientes().length" class="cliente-dropdown">
+              <li
+                *ngFor="let c of filteredClientes()"
+                class="cliente-option"
+                (mousedown)="onClienteSelect(c)"
+              >{{ c.nombre }}</li>
+            </ul>
+          </div>
+
+          <div class="invalid-feedback d-block" *ngIf="isInvalid('cliente_id')">
+            {{ errorText('cliente_id') ?? backendError('cliente_id') }}
+          </div>
+        </div>
+
+        <!-- ── Empaque ───────────────────────────────────────────────── -->
+        <div class="mb-4">
+          <label class="form-label fw-semibold">
+            Empaque <span class="text-danger">*</span>
+          </label>
+          <select
+            class="form-select"
+            formControlName="empaque_id"
+            [class.is-invalid]="isInvalid('empaque_id')"
+          >
+            <option [ngValue]="null">
+              {{ empaquesLoading() ? 'Cargando…' : '— Seleccionar empaque —' }}
+            </option>
+            <option *ngFor="let e of empaques()" [ngValue]="e.id">
+              {{ e.descripcion }}{{ e.dimensiones ? ' – ' + e.dimensiones : '' }}
+            </option>
+          </select>
+          <div class="invalid-feedback">{{ errorText('empaque_id') ?? backendError('empaque_id') }}</div>
+        </div>
+
+        <!-- ── Cantidad + Notas ──────────────────────────────────────── -->
+        <div class="row g-3">
+
+          <div class="col-sm-4">
+            <label class="form-label fw-semibold">
+              Cantidad <span class="text-danger">*</span>
+            </label>
+            <input
+              type="number"
+              class="form-control"
+              formControlName="cantidad"
+              [class.is-invalid]="isInvalid('cantidad')"
+              step="1"
+              min="1"
+              placeholder="0"
+            />
+            <div class="invalid-feedback">
+              {{ errorText('cantidad') ?? backendError('cantidad') }}
+            </div>
+          </div>
+
+          <div class="col-sm-8">
+            <label class="form-label fw-semibold">Notas</label>
+            <input
+              type="text"
+              class="form-control"
+              formControlName="notas"
+              maxlength="500"
+              placeholder="Referencia, observación… (opcional)"
+            />
+          </div>
+
+        </div>
+
+        <!-- ── Error general ─────────────────────────────────────────── -->
+        <div class="alert alert-danger mt-3 mb-0" *ngIf="errorMsg()">
+          {{ errorMsg() }}
+        </div>
+
+      </form>
+    </c-modal-body>
+
+    <c-modal-footer>
+      <button cButton color="secondary" variant="outline" (click)="close()" [disabled]="saving()">
+        Cancelar
+      </button>
+      <button
+        cButton
+        [color]="tipoActual === 'salida' ? 'danger' : 'success'"
+        (click)="submit()"
+        [disabled]="saving()"
+      >
+        {{ saving()
+            ? 'Guardando…'
+            : (tipoActual === 'salida' ? 'Registrar Salida' : 'Registrar Entrada') }}
+      </button>
+    </c-modal-footer>
+  </ng-container>
+
+</c-modal>

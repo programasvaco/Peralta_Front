@@ -5,6 +5,7 @@ export interface Almacen {
   ciudad?: string | null;
   telefono?: string | null;
   activo: boolean;
+  imagen?: string | null;
 }
 
 export interface AlmacenShowResponse {

@@ -1,0 +1,166 @@
+<div class="empaques-page">
+
+  <div class="page-header">
+    <h2>Control de Empaques</h2>
+    <button type="button" class="btn btn-primary" (click)="openMovDialog()">
+      + Registrar movimiento
+    </button>
+  </div>
+
+  <div class="split-view">
+
+    <!-- ── Panel izquierdo: clientes con saldo ─────────────────────── -->
+    <div class="split-left">
+
+      <div class="panel-toolbar">
+        <!-- Filtro por tipo de empaque -->
+        <select
+          class="form-select form-select-sm"
+          [value]="filterEmpaque() ?? ''"
+          (change)="onEmpaqueFilter($any($event.target).value)"
+        >
+          <option value="">Todos los empaques</option>
+          <option *ngFor="let e of empaques()" [value]="e.id">
+            {{ e.descripcion }}
+          </option>
+        </select>
+
+        <!-- Búsqueda de cliente -->
+        <input
+          type="text"
+          class="form-control form-control-sm"
+          placeholder="Buscar cliente..."
+          [value]="searchText()"
+          (input)="onSearch($any($event.target).value)"
+        />
+      </div>
+
+      <span class="panel-label">
+        {{ filteredSaldos().length }} cliente{{ filteredSaldos().length !== 1 ? 's' : '' }} con saldo
+      </span>
+
+      <div class="client-list">
+
+        <div *ngIf="loadingSaldos()" class="loading-placeholder">
+          Cargando...
+        </div>
+
+        <div *ngIf="!loadingSaldos() && errorSaldos()" class="alert alert-danger m-2" style="font-size:0.85rem;">
+          {{ errorSaldos() }}
+        </div>
+
+        <ng-container *ngIf="!loadingSaldos() && !errorSaldos()">
+          <div
+            *ngFor="let s of filteredSaldos()"
+            class="client-row"
+            [class.active]="selectedSaldo()?.id === s.id"
+            (click)="selectSaldo(s)"
+          >
+            <div class="d-flex flex-column flex-grow-1 min-width-0">
+              <span class="client-name">{{ s.cliente?.nombre }}</span>
+              <span class="client-empaque" *ngIf="!filterEmpaque()">
+                {{ s.empaque?.descripcion }}
+              </span>
+            </div>
+
+            <span class="saldo-badge" [ngClass]="saldoClass(s.saldo)">
+              {{ saldoLabel(s.saldo) }}
+            </span>
+          </div>
+
+          <div *ngIf="filteredSaldos().length === 0" class="empty-list">
+            Sin resultados.
+          </div>
+        </ng-container>
+
+      </div>
+    </div>
+
+    <!-- ── Panel derecho: movimientos del cliente seleccionado ─────── -->
+    <div class="split-right">
+
+      <ng-container *ngIf="selectedSaldo() as sel; else sinSeleccion">
+
+        <!-- Cabecera -->
+        <div class="panel-header">
+          <h5>{{ sel.cliente?.nombre }}</h5>
+          <span class="badge-empaque" *ngIf="filterEmpaque()">
+            {{ empaqueNombre }}
+          </span>
+          <span class="saldo-resumen">
+            Saldo: <strong [class.text-danger]="sel.saldo > 0"
+                           [class.text-success]="sel.saldo < 0">
+              {{ saldoLabel(sel.saldo) }} empaque{{ sel.saldo !== 1 ? 's' : '' }}
+            </strong>
+          </span>
+        </div>
+
+        <!-- Filtro rápido por tipo -->
+        <div class="panel-filter">
+          <label>Tipo:</label>
+          <select
+            class="form-select form-select-sm"
+            style="width: auto;"
+            [value]="filterTipo()"
+            (change)="onTipoFilter($any($event.target).value)"
+          >
+            <option value="">Todos</option>
+            <option value="salida">Salidas</option>
+            <option value="entrada">Entradas</option>
+          </select>
+
+          <button
+            type="button"
+            class="btn btn-outline-secondary btn-sm ms-auto"
+            (click)="loadMovimientos()"
+            [disabled]="loadingMov()"
+          >
+            {{ loadingMov() ? 'Cargando...' : 'Refrescar' }}
+          </button>
+        </div>
+
+        <!-- Error -->
+        <div *ngIf="errorMov()" class="alert alert-danger m-2" style="font-size:0.85rem;">
+          {{ errorMov() }}
+        </div>
+
+        <!-- Grid de movimientos -->
+        <div class="mov-grid">
+          <ag-grid-angular
+            class="ag-theme-alpine"
+            [theme]="'legacy'"
+            style="width: 100%; height: 100%;"
+            [rowData]="movimientos()"
+            [columnDefs]="colDefsMov"
+            [defaultColDef]="defaultColDef"
+            [animateRows]="true"
+            [overlayNoRowsTemplate]="overlayNoRows"
+            [overlayLoadingTemplate]="overlayLoading"
+            (gridReady)="onMovGridReady($event)"
+          ></ag-grid-angular>
+        </div>
+
+      </ng-container>
+
+      <!-- Estado vacío -->
+      <ng-template #sinSeleccion>
+        <div class="empty-panel">
+          <span class="empty-icon">📦</span>
+          <span class="empty-text">Selecciona un cliente para ver sus movimientos</span>
+        </div>
+      </ng-template>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- ── Dialog de movimiento ──────────────────────────────────────────────── -->
+<app-movimiento-dialog
+  [visible]="movDialogVisible()"
+  [defaultClienteId]="selectedSaldo()?.cliente_id ?? null"
+  [defaultEmpaqueId]="selectedSaldo()?.empaque_id ?? filterEmpaque()"
+  (visibleChange)="movDialogVisible.set($event)"
+  (saved)="onMovimientoSaved()"
+></app-movimiento-dialog>
+

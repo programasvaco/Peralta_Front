@@ -1,5 +1,6 @@
 import {
   cibCcAmex,
+  cibCodesandbox,
   cibCcApplePay,
   cibCcMastercard,
   cibCcPaypal,
@@ -109,6 +110,7 @@ import { logo } from './logo';
 
 export const iconSubset = {
   cibCcAmex,
+  cibCodesandbox,
   cibCcApplePay,
   cibCcMastercard,
   cibCcPaypal,
@@ -217,6 +219,7 @@ export const iconSubset = {
 
 export enum IconSubset {
   cibCcAmex = 'cibCcAmex',
+  cibCodesandbox = 'cibCodesandbox',
   cibCcApplePay = 'cibCcApplePay',
   cibCcMastercard = 'cibCcMastercard',
   cibCcPaypal = 'cibCcPaypal',

@@ -28,6 +28,12 @@ export const routes: Routes = [
         loadChildren: () =>
           import('./cxp/cxp.routes').then((m) => m.routes),
       },
+      {
+        path: 'empaques',
+        data: { title: 'Control de Empaques' },
+        loadChildren: () =>
+          import('./empaques/empaques.routes').then((m) => m.routes),
+      },
     ],
   },
 ];

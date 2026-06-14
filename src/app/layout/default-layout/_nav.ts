@@ -44,7 +44,12 @@ export const navItems: INavDataPerm[] = [
     iconComponent: { name: 'cil-share-boxed' },
     permissions: ['compras.ver'],
   },
-
+  {
+    name: 'Empaques',
+    url: '/operation/empaques',
+    iconComponent: { name: 'cib-codesandbox' },
+    permissions: ['empaques.ver'],
+  },
   { title: true, name: 'Catálogos' },
   {
     name: 'Catálogo',
@@ -85,6 +90,12 @@ export const navItems: INavDataPerm[] = [
       {
         name: 'Empleados',
         url: '/catalog/empleados',
+        icon: 'nav-icon-bullet',
+        permissions: ['catalogos.ver'],
+      },
+      {
+        name: 'Empaques',
+        url: '/catalog/empaques',
         icon: 'nav-icon-bullet',
         permissions: ['catalogos.ver'],
       },

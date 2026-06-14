@@ -1,0 +1,131 @@
+// ── Tipo toggle ───────────────────────────────────────────────────────────────
+.tipo-toggle {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.tipo-opt {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.75rem;
+  border: 2px solid #dee2e6;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  user-select: none;
+
+  input[type='radio'] { display: none; }
+
+  &:hover { background: #f8f9fa; }
+
+  &.active-salida {
+    border-color: #dc3545;
+    background: #fff5f5;
+    color: #b91c1c;
+  }
+
+  &.active-entrada {
+    border-color: #198754;
+    background: #f0fff4;
+    color: #15803d;
+  }
+}
+
+// ── Estado guardado ────────────────────────────────────────────────────────────
+.saved-state {
+  text-align: center;
+  padding: 1.5rem 1rem;
+
+  .saved-icon {
+    font-size: 3rem;
+    color: #198754;
+    line-height: 1;
+    margin-bottom: 0.75rem;
+  }
+
+  .saved-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #198754;
+    margin-bottom: 0.25rem;
+  }
+
+  .saved-folio {
+    font-size: 0.95rem;
+    color: #495057;
+    margin-bottom: 0.25rem;
+  }
+
+  .saved-detail {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-bottom: 0.75rem;
+  }
+
+  .saved-hint {
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 0;
+  }
+}
+
+// ── Picker dropdown de cliente ─────────────────────────────────────────────────
+.cliente-picker {
+  position: relative;
+}
+
+.cliente-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  .form-control { padding-right: 2rem; }
+
+  .cliente-clear {
+    position: absolute;
+    right: 0.5rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0 0.25rem;
+    color: #6c757d;
+    font-size: 0.8rem;
+    line-height: 1;
+
+    &:hover { color: #dc3545; }
+  }
+}
+
+.cliente-dropdown {
+  position: absolute;
+  z-index: 1050;
+  left: 0;
+  right: 0;
+  top: 100%;
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-top: none;
+  border-radius: 0 0 0.375rem 0.375rem;
+  max-height: 210px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.cliente-option {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+
+  &:hover {
+    background: #e7f3ff;
+    color: #0d6efd;
+  }
+}

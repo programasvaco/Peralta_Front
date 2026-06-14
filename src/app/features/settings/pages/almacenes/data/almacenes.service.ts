@@ -31,12 +31,13 @@ export class AlmacenesService {
     return this.http.get(`${this.base}/api/almacenes/${id}`);
   }
 
-  create(payload: Partial<Almacen>): Observable<any> {
+  create(payload: FormData): Observable<any> {
     return this.http.post(`${this.base}/api/almacenes`, payload);
   }
 
-  update(id: number, payload: Partial<Almacen>): Observable<any> {
-    return this.http.put(`${this.base}/api/almacenes/${id}`, payload);
+  update(id: number, payload: FormData): Observable<any> {
+    // Laravel no acepta archivos via PUT; usamos POST con _method spoofing
+    return this.http.post(`${this.base}/api/almacenes/${id}`, payload);
   }
 
   delete(id: number): Observable<any> {

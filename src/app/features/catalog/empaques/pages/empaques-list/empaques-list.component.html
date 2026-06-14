@@ -1,0 +1,109 @@
+<div class="crud-page">
+
+  <div class="crud-header">
+    <div class="crud-title">
+      <h2>Empaques</h2>
+      <small>{{ total() }} resultados</small>
+    </div>
+
+    <div class="crud-actions">
+      <button type="button" class="btn btn-outline-secondary" (click)="reload()">
+        Refrescar
+      </button>
+
+      <button type="button" class="btn btn-primary" (click)="goNew()" *hasPermission="'catalogos.crear'">
+        Nuevo
+      </button>
+
+      <button type="button" class="btn btn-outline-info" (click)="goEdit()"
+              [disabled]="!selectedId()" *hasPermission="'catalogos.editar'">
+        Editar
+      </button>
+
+      <button type="button" class="btn btn-outline-danger" (click)="openDeleteModal()"
+              [disabled]="!selectedId()" *hasPermission="'catalogos.eliminar'">
+        Eliminar
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="banner() as b" class="alert"
+       [class.alert-success]="b.type === 'success'"
+       [class.alert-danger]="b.type === 'danger'"
+       [class.alert-info]="b.type === 'info'">
+    {{ b.text }}
+  </div>
+
+  <div class="crud-toolbar">
+    <input
+      type="text"
+      class="form-control crud-search"
+      placeholder="Buscar por descripción o dimensiones..."
+      [value]="search()"
+      (input)="onSearch($any($event.target).value)"
+    />
+
+    <select class="form-select" [value]="activoFilter()" (change)="onActivo($any($event.target).value)">
+      <option value="all">Todos</option>
+      <option value="true">Activos</option>
+      <option value="false">Inactivos</option>
+    </select>
+
+    <select class="form-select" [value]="pageSize()" (change)="onPageSize($any($event.target).value)">
+      <option [value]="10">10</option>
+      <option [value]="25">25</option>
+      <option [value]="50">50</option>
+      <option [value]="100">100</option>
+    </select>
+
+    <div class="crud-pagination">
+      <button type="button" class="btn btn-outline-secondary" (click)="prevPage()" [disabled]="page() <= 1">
+        Anterior
+      </button>
+      <span class="crud-pageinfo">Página {{ page() }} / {{ lastPage() }}</span>
+      <button type="button" class="btn btn-outline-secondary" (click)="nextPage()" [disabled]="page() >= lastPage()">
+        Siguiente
+      </button>
+    </div>
+  </div>
+
+  <div class="crud-grid">
+    <ag-grid-angular
+      class="ag-theme-alpine"
+      [theme]="'legacy'"
+      style="width: 100%; height: 560px;"
+      [rowData]="rows()"
+      [columnDefs]="colDefs"
+      [defaultColDef]="defaultColDef"
+      [rowSelection]="'single'"
+      [animateRows]="true"
+      [overlayNoRowsTemplate]="overlayNoRowsTemplate"
+      [overlayLoadingTemplate]="overlayLoadingTemplate"
+      (gridReady)="onGridReady($event)"
+      (selectionChanged)="onSelectionChanged($event)"
+    ></ag-grid-angular>
+  </div>
+
+  <c-modal [visible]="deleteModalVisible()" (visibleChange)="deleteModalVisible.set($event)">
+    <c-modal-header>
+      <h5 class="modal-title">Confirmar eliminación</h5>
+    </c-modal-header>
+
+    <c-modal-body>
+      ¿Seguro que deseas eliminar el empaque seleccionado?
+      <div class="text-muted mt-2" style="font-size: 0.9rem;">
+        Nota: no se puede eliminar si tiene movimientos registrados.
+      </div>
+    </c-modal-body>
+
+    <c-modal-footer>
+      <button cButton color="secondary" variant="outline" (click)="closeDeleteModal()">
+        Cancelar
+      </button>
+      <button cButton color="danger" (click)="confirmDelete()" [disabled]="deleting()">
+        {{ deleting() ? 'Eliminando...' : 'Eliminar' }}
+      </button>
+    </c-modal-footer>
+  </c-modal>
+
+</div>

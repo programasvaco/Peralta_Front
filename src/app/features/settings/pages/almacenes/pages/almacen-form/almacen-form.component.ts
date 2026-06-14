@@ -5,6 +5,8 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AgGridAngular } from 'ag-grid-angular';
 import { ColDef } from 'ag-grid-community';
 
+import { environment } from '../../../../../../../enviroments/environment';
+
 import { AlmacenesService } from '../../data/almacenes.service';
 import { InventarioItem } from '../../data/almacenes.models';
 
@@ -26,6 +28,13 @@ export class AlmacenFormComponent {
 
   fieldErrors = signal<FieldErrors>({});
   valorInventario = signal<number | null>(null);
+
+  // Imagen
+  selectedFile: File | null = null;
+  imagenActual = signal<string | null>(null);
+  previewUrl = signal<string | null>(null);
+
+  storageUrl = `${environment.apiBaseUrl}/storage/`;
 
   // Tabs
   tab = signal<'general' | 'inventario'>('general');
@@ -130,6 +139,8 @@ export class AlmacenFormComponent {
           activo: !!a?.activo,
         });
 
+        this.imagenActual.set(a?.imagen ?? null);
+
         this.valorInventario.set(
           typeof res?.valor_inventario === 'number'
             ? res.valor_inventario
@@ -166,6 +177,17 @@ export class AlmacenFormComponent {
     return (!!c && c.touched && c.invalid) || backend;
   }
 
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    this.selectedFile = file;
+
+    if (this.previewUrl()) {
+      URL.revokeObjectURL(this.previewUrl()!);
+    }
+    this.previewUrl.set(file ? URL.createObjectURL(file) : null);
+  }
+
   clearBackendError(field: string) {
     const errs = { ...this.fieldErrors() };
     if (errs[field]) {
@@ -183,18 +205,20 @@ export class AlmacenFormComponent {
     this.saving.set(true);
 
     const raw = this.form.getRawValue();
-    const payload = {
-      descripcion: (raw.descripcion ?? '').trim(),
-      direccion: (raw.direccion ?? '').trim(),
-      ciudad: (raw.ciudad ?? '').trim() || null,
-      telefono: (raw.telefono ?? '').trim() || null,
-      activo: !!raw.activo,
-    };
+    const fd = new FormData();
+    fd.append('descripcion', (raw.descripcion ?? '').trim());
+    fd.append('direccion', (raw.direccion ?? '').trim());
+    fd.append('ciudad', (raw.ciudad ?? '').trim() || '');
+    fd.append('telefono', (raw.telefono ?? '').trim() || '');
+    fd.append('activo', raw.activo ? '1' : '0');
+    if (this.selectedFile) {
+      fd.append('imagen', this.selectedFile);
+    }
 
     const req =
       this.mode === 'create'
-        ? this.almacenesSvc.create(payload)
-        : this.almacenesSvc.update(this.almacenId!, payload);
+        ? this.almacenesSvc.create(fd)
+        : (fd.append('_method', 'PUT'), this.almacenesSvc.update(this.almacenId!, fd));
 
     req.subscribe({
       next: () => {
