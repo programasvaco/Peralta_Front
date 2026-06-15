@@ -51,12 +51,12 @@
         </div>
         <div class="info-item">
           <span class="info-label">Fecha</span>
-          <span>{{ c.fecha }}</span>
+          <span>{{ c.fecha | date:'dd/MM/yyyy' }}</span>
         </div>
         <div class="info-item">
           <span class="info-label">Vencimiento</span>
           <span [class.text-danger]="esVencida()" [class.fw-semibold]="esVencida()">
-            {{ c.vencimiento }}
+            {{ c.vencimiento | date:'dd/MM/yyyy' }}
           </span>
         </div>
         <div class="info-item">
@@ -96,11 +96,11 @@
           </thead>
           <tbody>
             <tr *ngFor="let d of c.compra!.detalles!">
-              <td>{{ d.articulo?.nombre || ('Art. #' + d.articulo_id) }}</td>
-              <td>{{ d.variedad || '—' }}</td>
-              <td class="text-end">{{ d.cantidad }}</td>
+              <td>{{ d.inventario?.articulo?.nombre ?? (d.inventario?.articulo_id ? 'Art. #' + d.inventario!.articulo_id : '—') }}</td>
+              <td>{{ d.inventario?.variedad || '—' }}</td>
+              <td class="text-end">{{ d.cantidad | number:'1.2-2' }}</td>
               <td class="text-end">{{ d.costo | number:'1.2-2' }}</td>
-              <td class="text-end fw-semibold">{{ (d.cantidad * d.costo) | number:'1.2-2' }}</td>
+              <td class="text-end fw-semibold">{{ (+d.cantidad * +d.costo) | number:'1.2-2' }}</td>
             </tr>
           </tbody>
         </table>
@@ -125,7 +125,7 @@
           <tbody>
             <tr *ngFor="let d of c.detalles; let i = index">
               <td>{{ i + 1 }}</td>
-              <td>{{ d.fecha }}</td>
+              <td>{{ d.fecha | date:'dd/MM/yyyy' }}</td>
               <td>
                 <c-badge [color]="tipoBadge(d.tipo)">{{ d.tipo }}</c-badge>
               </td>

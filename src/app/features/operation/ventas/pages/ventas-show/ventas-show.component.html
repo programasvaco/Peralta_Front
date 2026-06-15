@@ -49,8 +49,8 @@
         <span>{{ v.cliente?.nombre || ('ID ' + v.cliente_id) }}</span>
       </div>
       <div class="ticket-row">
-        <span class="label">Forma pago:</span>
-        <span>{{ v.forma_pago?.descripcion || '-' }}</span>
+        <span class="label">{{ v.credito ? 'Pago:' : 'Forma pago:' }}</span>
+        <span>{{ v.credito ? 'Crédito' : (v.forma_pago?.descripcion || '-') }}</span>
       </div>
       <div class="ticket-row" *ngIf="v.user">
         <span class="label">Atendió:</span>

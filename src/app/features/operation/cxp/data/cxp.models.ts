@@ -18,12 +18,17 @@ export interface CxpDetalle {
 
 export interface CompraDetalleRef {
   id: number;
-  articulo_id: number;
-  variedad?: string | null;
-  cantidad: number;
-  costo: number;
-  impuestos?: number | null;
-  articulo?: { id: number; nombre: string } | null;
+  compra_id: number;
+  inventario_id: number;
+  cantidad: string | number;
+  costo: string | number;
+  impuestos?: string | number | null;
+  inventario?: {
+    id: number;
+    articulo_id: number;
+    variedad?: string | null;
+    articulo?: { id: number; nombre: string; nombre_corto?: string } | null;
+  } | null;
 }
 
 export interface CtaXPagar {

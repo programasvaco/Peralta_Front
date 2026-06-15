@@ -27,19 +27,33 @@ export interface Compra {
 export interface CompraDetalle {
   id?: number;
   compra_id?: number;
-  lote: string; // LOT-...
-  articulo_id: number;
-  variedad: string;
-  cantidad: number;
-  empaque?: number | null;
-  costo: number;
-  impuestos?: number | null;
+  inventario_id?: number;
+  articulo_id?: number;
+  variedad?: string;
+  cantidad: number | string;
+  empaque?: number | string | null;
+  costo: number | string;
+  impuestos?: number | string | null;
+
+  inventario?: {
+    id: number;
+    almacen_id?: number;
+    articulo_id: number;
+    variedad?: string | null;
+    precio?: string | number | null;
+    precio_min?: string | number | null;
+    articulo?: {
+      id: number;
+      nombre: string;
+      categoria?: { id: number; descripcion: string };
+    } | null;
+  } | null;
 
   articulo?: {
     id: number;
     nombre: string;
     categoria?: { id: number; descripcion: string };
-  };
+  } | null;
 }
 
 export interface CompraShowResponse {
@@ -47,6 +61,7 @@ export interface CompraShowResponse {
   fecha: string;
   referencia: string;
   proveedor_id: number;
+  almacen_id?: number | null;
   subtotal: number;
   impuestos: number;
   total: number;

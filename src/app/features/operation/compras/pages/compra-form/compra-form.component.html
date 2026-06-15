@@ -42,7 +42,9 @@
             <div class="row g-3">
               <div class="col-12 col-md-3">
                 <label class="form-label">Fecha</label>
-                <input class="form-control" type="date" formControlName="fecha" [readonly]="!!id" />
+                <input *ngIf="!id" class="form-control" type="date" formControlName="fecha" />
+                <input *ngIf="!!id" class="form-control" type="text" readonly
+                       [value]="showData()?.fecha | date:'dd/MM/yyyy'" />
                 <div class="text-danger small" *ngIf="fieldErrors()['fecha']?.length">
                   {{ fieldErrors()['fecha'][0] }}
                 </div>

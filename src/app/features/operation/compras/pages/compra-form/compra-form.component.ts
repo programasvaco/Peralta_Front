@@ -115,7 +115,13 @@ export class CompraFormComponent {
     });
 
     this.almacenesSvc.list({ activo: true }).subscribe({
-      next: (res) => this.almacenes.set(res ?? []),
+      next: (res) => {
+        this.almacenes.set(res ?? []);
+        const almacenId = this.showData()?.almacen_id;
+        if (almacenId != null) {
+          this.form.controls.almacen_id.setValue(almacenId);
+        }
+      },
     });
 
     this.articulosSvc.list({ page: 1, per_page: 500, activo: true }).subscribe({
@@ -138,9 +144,10 @@ export class CompraFormComponent {
         this.showData.set(data);
 
         this.form.patchValue({
-          fecha: data.fecha,
+          fecha: data.fecha ? data.fecha.substring(0, 10) : '',
           referencia: data.referencia,
           proveedor_id: data.proveedor_id,
+          almacen_id: data.almacen_id ?? null,
         });
 
         // detalles
@@ -148,29 +155,34 @@ export class CompraFormComponent {
         this.articuloNombres = [];
         this.articuloDropdownOpens = [];
         (data.detalles ?? []).forEach((d) => {
+          const articuloId   = d.inventario?.articulo_id ?? d.articulo_id ?? null;
+          const articuloNombre = d.inventario?.articulo?.nombre ?? d.articulo?.nombre ?? '';
+          const variedad     = d.inventario?.variedad ?? d.variedad ?? '';
+
           const g = this.rowGroup();
           g.patchValue({
-            articulo_id: d.articulo_id,
-            variedad: d.variedad,
-            cantidad: Number(d.cantidad ?? 0),
-            empaque: Number(d.empaque ?? 0),
-            costo: Number(d.costo ?? 0),
-            impuestos: Number(d.impuestos ?? 0),
-
-            // en show no vienen, pero no importa
-            precio: 0,
-            precio_min: 0,
+            articulo_id: articuloId,
+            variedad,
+            cantidad:   Number(d.cantidad              ?? 0),
+            empaque:    Number(d.empaque               ?? 0),
+            costo:      Number(d.costo                 ?? 0),
+            impuestos:  Number(d.impuestos             ?? 0),
+            precio:     Number(d.inventario?.precio    ?? 0),
+            precio_min: Number(d.inventario?.precio_min ?? 0),
           });
           this.detalles.push(g);
-          this.articuloNombres.push(d.articulo?.nombre ?? '');
+          this.articuloNombres.push(articuloNombre);
           this.articuloDropdownOpens.push(false);
         });
 
         this.fieldErrors.set({});
-        this.loading.set(false);
 
-        // ✅ recalcular con datos cargados
-        this.recalcTotals();
+        // Diferir la visibilidad al siguiente tick para que Angular
+        // cree el DOM antes de que writeValue sincronice los valores
+        setTimeout(() => {
+          this.loading.set(false);
+          this.recalcTotals();
+        }, 0);
       },
       error: (error) => {
         this.loading.set(false);
