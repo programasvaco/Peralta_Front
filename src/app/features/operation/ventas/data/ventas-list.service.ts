@@ -3,7 +3,15 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../../../../enviroments/environment';
-import { PaginatedResponse, VentaListItem, VentaShow, VentasQuery } from './ventas-list.models';
+import {
+  PaginatedResponse,
+  ReporteVentasQuery,
+  ResumenFormasPagoResponse,
+  ResumenPorArticuloResponse,
+  VentaListItem,
+  VentaShow,
+  VentasQuery,
+} from './ventas-list.models';
 
 @Injectable({ providedIn: 'root' })
 export class VentasListService {
@@ -27,5 +35,31 @@ export class VentasListService {
 
   get(id: number): Observable<VentaShow> {
     return this.http.get<VentaShow>(`${this.base}/api/ventas/${id}`);
+  }
+
+  porArticulo(q: ReporteVentasQuery = {}): Observable<ResumenPorArticuloResponse> {
+    let params = new HttpParams();
+
+    if (q.fecha_inicio) params = params.set('fecha_inicio', q.fecha_inicio);
+    if (q.fecha_fin)    params = params.set('fecha_fin', q.fecha_fin);
+    if (q.almacen_id)   params = params.set('almacen_id', String(q.almacen_id));
+
+    return this.http.get<ResumenPorArticuloResponse>(
+      `${this.base}/api/ventas/reportes/por-articulo`,
+      { params },
+    );
+  }
+
+  formasPago(q: ReporteVentasQuery = {}): Observable<ResumenFormasPagoResponse> {
+    let params = new HttpParams();
+
+    if (q.fecha_inicio) params = params.set('fecha_inicio', q.fecha_inicio);
+    if (q.fecha_fin)    params = params.set('fecha_fin', q.fecha_fin);
+    if (q.almacen_id)   params = params.set('almacen_id', String(q.almacen_id));
+
+    return this.http.get<ResumenFormasPagoResponse>(
+      `${this.base}/api/ventas/reportes/formas-pago`,
+      { params },
+    );
   }
 }

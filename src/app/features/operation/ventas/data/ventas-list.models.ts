@@ -48,3 +48,40 @@ export interface VentasQuery {
   per_page?: number | null;
   page?: number | null;
 }
+
+export interface ReporteVentasQuery {
+  fecha_inicio?: string | null;
+  fecha_fin?: string | null;
+  almacen_id?: number | null;
+}
+
+export interface VentaPorArticuloRow {
+  id: number;
+  nombre: string;
+  unidad?: string | null;
+  cantidad: number;
+  subtotal: number;
+  impuestos: number;
+  total: number;
+}
+
+export interface ResumenPorArticuloResponse {
+  fecha_inicio: string;
+  fecha_fin: string;
+  articulos: VentaPorArticuloRow[];
+  totales: { cantidad: number; subtotal: number; impuestos: number; total: number };
+}
+
+export interface VentaFormaPagoRow {
+  f_pago_id: number | null;
+  forma_pago: string;
+  tickets: number;
+  total: number;
+}
+
+export interface ResumenFormasPagoResponse {
+  fecha_inicio: string;
+  fecha_fin: string;
+  formas_pago: VentaFormaPagoRow[];
+  totales: { tickets: number; total: number };
+}

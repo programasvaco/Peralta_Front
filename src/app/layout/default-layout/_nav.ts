@@ -132,6 +132,12 @@ export const navItems: INavDataPerm[] = [
 
   { title: true, name: 'Reportes' },
   {
+    name: 'Ventas',
+    url: '/reporte/ventas',
+    iconComponent: { name: 'cil-chart' },
+    permissions: ['ventas.ver'],
+  },
+  {
     name: 'Caja',
     url: '/reporte/caja',
     iconComponent: { name: 'cil-cash' },

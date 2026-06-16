@@ -27,6 +27,13 @@ export const routes: Routes = [
           import('./pages/cortes/corte-show.component').then((m) => m.CorteShowComponent),
       },
       {
+        path: 'ventas',
+        canMatch: [permissionMatch('ventas.ver')],
+        data: { title: 'Reporte de Ventas' },
+        loadComponent: () =>
+          import('./pages/ventas/ventas.component').then((m) => m.VentasReporteComponent),
+      },
+      {
         path: '',
         redirectTo: 'caja',
         pathMatch: 'full',

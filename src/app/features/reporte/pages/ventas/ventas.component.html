@@ -1,0 +1,135 @@
+<div class="crud-page">
+
+  <div class="crud-header">
+    <div class="crud-title">
+      <h2>Reporte de Ventas</h2>
+      <small>Resumen por artículo y por forma de pago</small>
+    </div>
+  </div>
+
+  <!-- Banner -->
+  <div *ngIf="banner() as b" class="alert alert-danger">{{ b.text }}</div>
+
+  <!-- Controles de generación -->
+  <div class="crud-toolbar">
+    <div class="d-flex align-items-center gap-2">
+      <label class="form-label mb-0 text-nowrap">Fecha inicio:</label>
+      <input type="date" class="form-control" style="max-width: 160px;" [value]="fechaInicio()"
+        (change)="onFechaInicio($any($event.target).value)" />
+    </div>
+
+    <div class="d-flex align-items-center gap-2">
+      <label class="form-label mb-0 text-nowrap">Fecha fin:</label>
+      <input type="date" class="form-control" style="max-width: 160px;" [value]="fechaFin()"
+        (change)="onFechaFin($any($event.target).value)" />
+    </div>
+
+    <div class="d-flex align-items-center gap-2">
+      <label class="form-label mb-0 text-nowrap">Almacén:</label>
+      <select class="form-select" style="max-width: 220px;" [value]="almacenId() ?? ''"
+        (change)="onAlmacen($any($event.target).value)">
+        <option value="">Todos los almacenes</option>
+        <option *ngFor="let a of almacenes()" [value]="a.id">{{ a.descripcion }}</option>
+      </select>
+    </div>
+
+    <button type="button" class="btn btn-primary" (click)="generar()" [disabled]="loading()">
+      {{ loading() ? 'Generando...' : 'Generar' }}
+    </button>
+  </div>
+
+  <!-- Resumen por artículo -->
+  <div>
+    <h5 class="mb-3">Ventas por artículo</h5>
+
+    <div class="row g-3 mb-2">
+      <div class="col-12 col-sm-3">
+        <div class="card text-center">
+          <div class="card-body py-3">
+            <div class="text-muted small mb-1">Cantidad</div>
+            <div class="fs-5 fw-bold">{{ totalesArticulos().cantidad | number:'1.2-2' }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-sm-3">
+        <div class="card text-center">
+          <div class="card-body py-3">
+            <div class="text-muted small mb-1">Subtotal</div>
+            <div class="fs-5 fw-bold">${{ totalesArticulos().subtotal | number:'1.2-2' }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-sm-3">
+        <div class="card text-center">
+          <div class="card-body py-3">
+            <div class="text-muted small mb-1">Impuestos</div>
+            <div class="fs-5 fw-bold">${{ totalesArticulos().impuestos | number:'1.2-2' }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-sm-3">
+        <div class="card text-center">
+          <div class="card-body py-3">
+            <div class="text-muted small mb-1">Total</div>
+            <div class="fs-5 fw-bold text-primary">${{ totalesArticulos().total | number:'1.2-2' }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="crud-grid">
+      <ag-grid-angular
+        class="ag-theme-alpine"
+        [theme]="'legacy'"
+        style="width: 100%; height: 360px;"
+        [rowData]="articulos()"
+        [columnDefs]="colDefsArticulos"
+        [defaultColDef]="defaultColDef"
+        [animateRows]="true"
+        [overlayNoRowsTemplate]="overlayNoRowsTemplate"
+        [overlayLoadingTemplate]="overlayLoadingTemplate"
+        (gridReady)="onGridArticulosReady($event)"
+      ></ag-grid-angular>
+    </div>
+  </div>
+
+  <!-- Resumen por forma de pago -->
+  <div>
+    <h5 class="mb-3">Ventas por forma de pago</h5>
+
+    <div class="row g-3 mb-2">
+      <div class="col-12 col-sm-6">
+        <div class="card text-center">
+          <div class="card-body py-3">
+            <div class="text-muted small mb-1">Tickets</div>
+            <div class="fs-5 fw-bold">{{ totalesFormasPago().tickets }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-sm-6">
+        <div class="card text-center">
+          <div class="card-body py-3">
+            <div class="text-muted small mb-1">Total</div>
+            <div class="fs-5 fw-bold text-primary">${{ totalesFormasPago().total | number:'1.2-2' }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="crud-grid">
+      <ag-grid-angular
+        class="ag-theme-alpine"
+        [theme]="'legacy'"
+        style="width: 100%; height: 280px;"
+        [rowData]="formasPago()"
+        [columnDefs]="colDefsFormasPago"
+        [defaultColDef]="defaultColDef"
+        [animateRows]="true"
+        [overlayNoRowsTemplate]="overlayNoRowsTemplate"
+        [overlayLoadingTemplate]="overlayLoadingTemplate"
+        (gridReady)="onGridFormasPagoReady($event)"
+      ></ag-grid-angular>
+    </div>
+  </div>
+
+</div>
