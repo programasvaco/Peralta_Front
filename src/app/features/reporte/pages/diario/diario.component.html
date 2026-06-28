@@ -1,0 +1,173 @@
+<div class="crud-page">
+
+  <div class="crud-header">
+    <div class="crud-title">
+      <h2>Reporte Diario</h2>
+      <small>Resumen de ventas, cobros y recuperación del día</small>
+    </div>
+  </div>
+
+  <!-- Banner -->
+  <div *ngIf="banner() as b" class="alert alert-danger">{{ b.text }}</div>
+
+  <!-- Filtros -->
+  <div class="crud-toolbar">
+    <div class="d-flex align-items-center gap-2">
+      <label class="form-label mb-0 text-nowrap">Fecha:</label>
+      <input type="date" class="form-control" style="max-width: 160px;" [value]="fecha()"
+        (change)="onFecha($any($event.target).value)" />
+    </div>
+
+    <div *ngIf="!almacenFijo()" class="d-flex align-items-center gap-2">
+      <label class="form-label mb-0 text-nowrap">Almacén:</label>
+      <select class="form-select" style="max-width: 220px;" [value]="almacenId() ?? ''"
+        (change)="onAlmacen($any($event.target).value)">
+        <option value="">Todos los almacenes</option>
+        <option *ngFor="let a of almacenes()" [value]="a.id">{{ a.descripcion }}</option>
+      </select>
+    </div>
+
+    <button type="button" class="btn btn-primary" (click)="generar()" [disabled]="loading()">
+      {{ loading() ? 'Generando...' : 'Generar' }}
+    </button>
+  </div>
+
+  <!-- Reporte -->
+  <ng-container *ngIf="reporte() as r">
+
+    <!-- ① Efectivo -->
+    <div class="reporte-seccion">
+      <div class="reporte-seccion-header">
+        <span class="reporte-num">1</span>
+        <h5 class="mb-0">Efectivo del día</h5>
+        <span class="badge bg-secondary ms-2">{{ r.efectivo.tickets }} ticket(s)</span>
+      </div>
+      <div class="reporte-monto text-success">
+        ${{ r.efectivo.total | number:'1.2-2' }}
+      </div>
+    </div>
+
+    <!-- ② Otras formas de pago -->
+    <div class="reporte-seccion">
+      <div class="reporte-seccion-header">
+        <span class="reporte-num">2</span>
+        <h5 class="mb-0">Otras formas de pago</h5>
+      </div>
+
+      <ng-container *ngIf="r.otras_formas_pago.length; else sinOtras">
+        <table class="table table-sm table-borderless mb-2" style="max-width: 480px;">
+          <tbody>
+            <tr *ngFor="let fp of r.otras_formas_pago">
+              <td class="text-muted">{{ fp.forma_pago }}</td>
+              <td class="text-end text-muted small">{{ fp.tickets }} tix</td>
+              <td class="text-end fw-semibold">${{ fp.total | number:'1.2-2' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </ng-container>
+      <ng-template #sinOtras>
+        <p class="text-muted small mb-2">Sin pagos con otras formas de pago.</p>
+      </ng-template>
+
+      <div class="reporte-monto text-success">
+        ${{ r.total_otras_formas_pago | number:'1.2-2' }}
+      </div>
+    </div>
+
+    <!-- Subtotal contado (1 + 2) -->
+    <div class="reporte-subtotal">
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="fw-bold">Subtotal contado (1 + 2)</span>
+        <span class="fs-5 fw-bold text-primary">${{ r.subtotal_contado | number:'1.2-2' }}</span>
+      </div>
+    </div>
+
+    <!-- ③ Crédito del día -->
+    <div class="reporte-seccion">
+      <div class="reporte-seccion-header">
+        <span class="reporte-num">3</span>
+        <h5 class="mb-0">Venta a crédito del día</h5>
+        <span class="badge bg-secondary ms-2">{{ r.credito.tickets }} ticket(s)</span>
+      </div>
+      <div class="reporte-monto text-warning">
+        ${{ r.credito.total | number:'1.2-2' }}
+      </div>
+    </div>
+
+    <!-- Total ventas del día (1 + 2 + 3) -->
+    <div class="reporte-subtotal reporte-subtotal--destacado">
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="fw-bold">Total ventas del día (1 + 2 + 3)</span>
+        <span class="fs-4 fw-bold text-primary">${{ r.total_venta_dia | number:'1.2-2' }}</span>
+      </div>
+    </div>
+
+    <!-- ④ Recuperado -->
+    <div class="reporte-seccion">
+      <div class="reporte-seccion-header">
+        <span class="reporte-num">4</span>
+        <h5 class="mb-0">Recuperado del día</h5>
+        <span class="badge bg-secondary ms-2">{{ r.recuperado.abonos }} abono(s)</span>
+      </div>
+      <div class="reporte-monto text-info">
+        ${{ r.recuperado.total | number:'1.2-2' }}
+      </div>
+    </div>
+
+  </ng-container>
+
+  <ng-container *ngIf="!reporte() && !loading() && !banner()">
+    <p class="text-muted mt-3">Selecciona una fecha y presiona Generar.</p>
+  </ng-container>
+
+</div>
+
+<style>
+  .reporte-seccion {
+    background: var(--cui-card-bg, #fff);
+    border: 1px solid var(--cui-border-color, #dee2e6);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: .75rem;
+  }
+
+  .reporte-seccion-header {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin-bottom: .5rem;
+  }
+
+  .reporte-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--cui-primary, #321fdb);
+    color: #fff;
+    font-weight: 700;
+    font-size: .85rem;
+    flex-shrink: 0;
+  }
+
+  .reporte-monto {
+    font-size: 1.6rem;
+    font-weight: 700;
+    text-align: right;
+  }
+
+  .reporte-subtotal {
+    background: var(--cui-light, #f8f9fa);
+    border-left: 4px solid var(--cui-primary, #321fdb);
+    border-radius: 4px;
+    padding: .75rem 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .reporte-subtotal--destacado {
+    border-left-color: var(--cui-success, #2eb85c);
+    margin-bottom: .75rem;
+  }
+</style>

@@ -34,6 +34,20 @@ export const routes: Routes = [
           import('./pages/ventas/ventas.component').then((m) => m.VentasReporteComponent),
       },
       {
+        path: 'diario',
+        canMatch: [permissionMatch('ventas.ver')],
+        data: { title: 'Reporte Diario' },
+        loadComponent: () =>
+          import('./pages/diario/diario.component').then((m) => m.ReporteDiarioComponent),
+      },
+      {
+        path: 'estado-resultados',
+        canMatch: [permissionMatch('ventas.ver')],
+        data: { title: 'Estado de Resultados' },
+        loadComponent: () =>
+          import('./pages/estado-resultados/estado-resultados.component').then((m) => m.EstadoResultadosComponent),
+      },
+      {
         path: '',
         redirectTo: 'caja',
         pathMatch: 'full',

@@ -85,3 +85,26 @@ export interface ResumenFormasPagoResponse {
   formas_pago: VentaFormaPagoRow[];
   totales: { tickets: number; total: number };
 }
+
+export interface ReporteDiarioQuery {
+  fecha: string;
+  almacen_id?: number | null;
+}
+
+export interface OtraFormaPagoRow {
+  f_pago_id: number;
+  forma_pago: string;
+  tickets: number;
+  total: number;
+}
+
+export interface ReporteDiarioResponse {
+  fecha: string;
+  efectivo: { total: number; tickets: number };
+  otras_formas_pago: OtraFormaPagoRow[];
+  total_otras_formas_pago: number;
+  subtotal_contado: number;
+  credito: { total: number; tickets: number };
+  total_venta_dia: number;
+  recuperado: { total: number; abonos: number };
+}

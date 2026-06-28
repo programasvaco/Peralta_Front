@@ -132,6 +132,18 @@ export const navItems: INavDataPerm[] = [
 
   { title: true, name: 'Reportes' },
   {
+    name: 'Reporte Diario',
+    url: '/reporte/diario',
+    iconComponent: { name: 'cil-calendar' },
+    permissions: ['ventas.ver'],
+  },
+  {
+    name: 'Estado de Resultados',
+    url: '/reporte/estado-resultados',
+    iconComponent: { name: 'cil-balance-scale' },
+    permissions: ['ventas.ver'],
+  },
+  {
     name: 'Ventas',
     url: '/reporte/ventas',
     iconComponent: { name: 'cil-chart' },

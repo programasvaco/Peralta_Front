@@ -5,6 +5,8 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../../../enviroments/environment';
 import {
   PaginatedResponse,
+  ReporteDiarioQuery,
+  ReporteDiarioResponse,
   ReporteVentasQuery,
   ResumenFormasPagoResponse,
   ResumenPorArticuloResponse,
@@ -59,6 +61,16 @@ export class VentasListService {
 
     return this.http.get<ResumenFormasPagoResponse>(
       `${this.base}/api/ventas/reportes/formas-pago`,
+      { params },
+    );
+  }
+
+  diario(q: ReporteDiarioQuery): Observable<ReporteDiarioResponse> {
+    let params = new HttpParams().set('fecha', q.fecha);
+    if (q.almacen_id) params = params.set('almacen_id', String(q.almacen_id));
+
+    return this.http.get<ReporteDiarioResponse>(
+      `${this.base}/api/ventas/reportes/diario`,
       { params },
     );
   }

@@ -1,0 +1,335 @@
+<div class="crud-page">
+
+  <div class="crud-header">
+    <div class="crud-title">
+      <h2>Estado de Resultados</h2>
+      <small>Resumen financiero por período</small>
+    </div>
+  </div>
+
+  <!-- Banner -->
+  <div *ngIf="banner() as b" class="alert alert-danger">{{ b.text }}</div>
+
+  <!-- Filtros -->
+  <div class="crud-toolbar">
+    <div class="d-flex align-items-center gap-2">
+      <label class="form-label mb-0 text-nowrap">Fecha inicio:</label>
+      <input type="date" class="form-control" style="max-width: 160px;" [value]="fechaInicio()"
+        (change)="onFechaInicio($any($event.target).value)" />
+    </div>
+
+    <div class="d-flex align-items-center gap-2">
+      <label class="form-label mb-0 text-nowrap">Fecha fin:</label>
+      <input type="date" class="form-control" style="max-width: 160px;" [value]="fechaFin()"
+        (change)="onFechaFin($any($event.target).value)" />
+    </div>
+
+    <div *ngIf="!almacenFijo()" class="d-flex align-items-center gap-2">
+      <label class="form-label mb-0 text-nowrap">Almacén:</label>
+      <select class="form-select" style="max-width: 220px;" [value]="almacenId() ?? ''"
+        (change)="onAlmacen($any($event.target).value)">
+        <option value="">Todos los almacenes</option>
+        <option *ngFor="let a of almacenes()" [value]="a.id">{{ a.descripcion }}</option>
+      </select>
+    </div>
+
+    <button type="button" class="btn btn-primary" (click)="generar()" [disabled]="loading()">
+      {{ loading() ? 'Generando...' : 'Generar' }}
+    </button>
+  </div>
+
+  <!-- Reporte -->
+  <ng-container *ngIf="reporte() as r">
+
+    <div class="er-documento">
+
+      <!-- Encabezado -->
+      <div class="er-encabezado">
+        <div class="er-titulo">ESTADO DE RESULTADOS</div>
+        <div class="er-periodo">
+          Del {{ r.fecha_inicio | date:'dd/MM/yyyy' }} al {{ r.fecha_fin | date:'dd/MM/yyyy' }}
+        </div>
+      </div>
+
+      <!-- ── INGRESOS ─────────────────────────────────────────────── -->
+      <div class="er-seccion-label">INGRESOS</div>
+
+      <!-- 1. Ventas del período -->
+      <div class="er-fila er-fila--grupo">
+        <span class="er-concepto">
+          <span class="er-num">1</span>
+          Ventas del período
+          <small class="text-muted">({{ r.ventas_periodo.tickets }} tickets)</small>
+        </span>
+        <span class="er-monto er-monto--positivo">${{ r.ventas_periodo.total | number:'1.2-2' }}</span>
+      </div>
+      <div class="er-fila er-fila--sub">
+        <span class="er-concepto">Contado</span>
+        <span class="er-monto text-muted">${{ r.ventas_periodo.contado | number:'1.2-2' }}</span>
+      </div>
+      <div class="er-fila er-fila--sub">
+        <span class="er-concepto">A crédito</span>
+        <span class="er-monto text-muted">${{ r.ventas_periodo.credito | number:'1.2-2' }}</span>
+      </div>
+
+      <!-- 2. Crédito pendiente -->
+      <div class="er-fila er-fila--grupo">
+        <span class="er-concepto">
+          <span class="er-num er-num--neg">2</span>
+          Crédito pendiente
+          <small class="text-muted">({{ r.credito_pendiente.num_cuentas }} cuentas)</small>
+        </span>
+        <span class="er-monto er-monto--negativo">-${{ r.credito_pendiente.total | number:'1.2-2' }}</span>
+      </div>
+
+      <!-- Subtotal ventas cobradas -->
+      <div class="er-subtotal">
+        <span>Ventas cobradas del período</span>
+        <span>${{ (r.ventas_periodo.total - r.credito_pendiente.total) | number:'1.2-2' }}</span>
+      </div>
+
+      <!-- 3. Recuperación -->
+      <div class="er-fila er-fila--grupo">
+        <span class="er-concepto">
+          <span class="er-num">3</span>
+          Recuperación (períodos anteriores)
+          <small class="text-muted">({{ r.recuperacion.abonos }} abono(s))</small>
+        </span>
+        <span class="er-monto er-monto--positivo">${{ r.recuperacion.total | number:'1.2-2' }}</span>
+      </div>
+
+      <!-- Total ingresos -->
+      <div class="er-total er-total--ingresos">
+        <span>TOTAL INGRESOS</span>
+        <span>${{ totalIngresos(r) | number:'1.2-2' }}</span>
+      </div>
+
+      <!-- ── EGRESOS ──────────────────────────────────────────────── -->
+      <div class="er-seccion-label er-seccion-label--egresos">EGRESOS</div>
+
+      <!-- 4. Costo de ventas -->
+      <div class="er-fila er-fila--grupo">
+        <span class="er-concepto">
+          <span class="er-num er-num--neg">4</span>
+          Costo de ventas del período
+        </span>
+        <span class="er-monto er-monto--negativo">-${{ r.costo_ventas | number:'1.2-2' }}</span>
+      </div>
+
+      <!-- 5. Compras pagadas -->
+      <div class="er-fila er-fila--grupo">
+        <span class="er-concepto">
+          <span class="er-num er-num--neg">5</span>
+          Compras pagadas del período
+          <small class="text-muted">({{ r.compras_pagadas.num_compras }} compras)</small>
+        </span>
+        <span class="er-monto er-monto--negativo">-${{ r.compras_pagadas.total | number:'1.2-2' }}</span>
+      </div>
+      <div class="er-fila er-fila--sub" *ngIf="r.compras_pagadas.contado > 0">
+        <span class="er-concepto">Contado</span>
+        <span class="er-monto text-muted">-${{ r.compras_pagadas.contado | number:'1.2-2' }}</span>
+      </div>
+      <div class="er-fila er-fila--sub" *ngIf="r.compras_pagadas.credito_saldado > 0">
+        <span class="er-concepto">Crédito saldado</span>
+        <span class="er-monto text-muted">-${{ r.compras_pagadas.credito_saldado | number:'1.2-2' }}</span>
+      </div>
+
+      <!-- 6. Pagos a proveedores -->
+      <div class="er-fila er-fila--grupo">
+        <span class="er-concepto">
+          <span class="er-num er-num--neg">6</span>
+          Pagos a proveedores (períodos anteriores)
+          <small class="text-muted">({{ r.pagos_proveedores.num_pagos }} pago(s))</small>
+        </span>
+        <span class="er-monto er-monto--negativo">-${{ r.pagos_proveedores.total | number:'1.2-2' }}</span>
+      </div>
+
+      <!-- 7. Gastos adicionales -->
+      <div class="er-fila er-fila--grupo">
+        <span class="er-concepto">
+          <span class="er-num er-num--neg">7</span>
+          Gastos adicionales
+          <small class="text-muted">({{ r.gastos_adicionales.movimientos.length }} movimiento(s))</small>
+        </span>
+        <span class="er-monto er-monto--negativo">-${{ r.gastos_adicionales.total | number:'1.2-2' }}</span>
+      </div>
+      <ng-container *ngIf="r.gastos_adicionales.movimientos.length">
+        <div class="er-fila er-fila--sub" *ngFor="let g of r.gastos_adicionales.movimientos">
+          <span class="er-concepto">
+            {{ g.fecha | date:'dd/MM' }} — {{ g.referencia }}
+          </span>
+          <span class="er-monto text-muted">-${{ g.cantidad | number:'1.2-2' }}</span>
+        </div>
+      </ng-container>
+
+      <!-- Total egresos -->
+      <div class="er-total er-total--egresos">
+        <span>TOTAL EGRESOS</span>
+        <span>-${{ totalEgresos(r) | number:'1.2-2' }}</span>
+      </div>
+
+      <!-- ── RESULTADO ────────────────────────────────────────────── -->
+      <div class="er-resultado" [class.er-resultado--positivo]="resultado(r) >= 0"
+                                [class.er-resultado--negativo]="resultado(r) < 0">
+        <span>RESULTADO DEL PERÍODO</span>
+        <span>
+          {{ resultado(r) < 0 ? '-' : '' }}${{ (resultado(r) < 0 ? -resultado(r) : resultado(r)) | number:'1.2-2' }}
+        </span>
+      </div>
+
+    </div>
+  </ng-container>
+
+</div>
+
+<style>
+  .er-documento {
+    background: var(--cui-card-bg, #fff);
+    border: 1px solid var(--cui-border-color, #dee2e6);
+    border-radius: 8px;
+    overflow: hidden;
+    max-width: 700px;
+  }
+
+  .er-encabezado {
+    background: var(--cui-primary, #321fdb);
+    color: #fff;
+    padding: 1.25rem 1.5rem;
+    text-align: center;
+  }
+
+  .er-titulo {
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: .05em;
+  }
+
+  .er-periodo {
+    font-size: .875rem;
+    opacity: .85;
+    margin-top: .25rem;
+  }
+
+  .er-seccion-label {
+    background: #e8e5ff;
+    color: var(--cui-primary, #321fdb);
+    font-weight: 700;
+    font-size: .75rem;
+    letter-spacing: .08em;
+    padding: .4rem 1.25rem;
+    border-top: 1px solid #d0cbf5;
+  }
+
+  .er-seccion-label--egresos {
+    background: #fde8e8;
+    color: #c53030;
+    border-top-color: #f5c5c5;
+    margin-top: .5rem;
+  }
+
+  .er-fila {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: .45rem 1.25rem;
+    border-bottom: 1px solid var(--cui-border-color, #f0f0f0);
+  }
+
+  .er-fila--sub {
+    padding-left: 2.75rem;
+    background: var(--cui-light, #f8f9fa);
+    font-size: .875rem;
+  }
+
+  .er-concepto {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    flex: 1;
+  }
+
+  .er-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--cui-primary, #321fdb);
+    color: #fff;
+    font-size: .7rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .er-num--neg {
+    background: #c53030;
+  }
+
+  .er-monto {
+    font-weight: 600;
+    white-space: nowrap;
+    min-width: 120px;
+    text-align: right;
+  }
+
+  .er-monto--positivo { color: #2eb85c; }
+  .er-monto--negativo { color: #c53030; }
+
+  .er-subtotal {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: .5rem 1.25rem;
+    font-weight: 600;
+    background: #f0eeff;
+    border-top: 2px solid var(--cui-primary, #321fdb);
+    border-bottom: 1px solid #d0cbf5;
+    font-size: .925rem;
+  }
+
+  .er-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: .65rem 1.25rem;
+    font-weight: 700;
+    font-size: 1.05rem;
+    border-top: 2px solid;
+  }
+
+  .er-total--ingresos {
+    color: #2eb85c;
+    border-color: #2eb85c;
+    background: #f0fdf4;
+  }
+
+  .er-total--egresos {
+    color: #c53030;
+    border-color: #c53030;
+    background: #fff5f5;
+  }
+
+  .er-resultado {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    font-weight: 700;
+    font-size: 1.3rem;
+    border-top: 3px double;
+    margin-top: .25rem;
+  }
+
+  .er-resultado--positivo {
+    color: #2eb85c;
+    border-color: #2eb85c;
+    background: #f0fdf4;
+  }
+
+  .er-resultado--negativo {
+    color: #c53030;
+    border-color: #c53030;
+    background: #fff5f5;
+  }
+</style>
