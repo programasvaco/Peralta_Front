@@ -16,6 +16,7 @@ import {
 import { HasPermissionDirective } from '../../../../../core/directives/has-permission.directive';
 import { EmpaquesService } from '../../data/empaques.service';
 import { Empaque } from '../../data/empaques.models';
+import { AG_GRID_DEFAULT_COL_DEF } from '../../../../../shared/utils/ag-grid-defaults';
 
 @Component({
   selector: 'app-empaques-list',
@@ -51,7 +52,7 @@ export class EmpaquesListComponent {
 
   private allRows: Empaque[] = [];
 
-  defaultColDef: ColDef = { sortable: true, resizable: true, filter: false };
+  defaultColDef: ColDef = AG_GRID_DEFAULT_COL_DEF;
 
   colDefs: ColDef<Empaque>[] = [
     { headerName: 'ID',          field: 'id',          width: 80 },

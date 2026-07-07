@@ -17,6 +17,7 @@ import { Almacen, InventarioItem } from '../../../settings/pages/almacenes/data/
 import { CategoriasService } from '../../../catalog/articulos/data/categorias.service';
 import { InventarioService} from '../../../../../app/features/reporte/data/inventario.service'
 import { UserStorageService } from '../../../../core/storage/user-storage.service';
+import { AG_GRID_DEFAULT_COL_DEF } from '../../../../shared/utils/ag-grid-defaults';
 
 @Component({
   selector: 'app-precios',
@@ -81,7 +82,7 @@ export class PreciosComponent {
     }
   );
 
-  defaultColDef: ColDef = { sortable: true, resizable: true, filter: false };
+  defaultColDef: ColDef = AG_GRID_DEFAULT_COL_DEF;
 
   overlayNoRowsTemplate  = `<div class="ag-overlay-msg">No hay artículos para mostrar.</div>`;
   overlayLoadingTemplate = `<div class="ag-overlay-msg">Cargando...</div>`;

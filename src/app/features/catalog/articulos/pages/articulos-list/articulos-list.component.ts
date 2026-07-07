@@ -21,6 +21,7 @@ import {
   ModalHeaderComponent,
 } from '@coreui/angular';
 import * as XLSX from 'xlsx';
+import { AG_GRID_DEFAULT_COL_DEF } from '../../../../../shared/utils/ag-grid-defaults';
 
 @Component({
   selector: 'app-articulos-list',
@@ -57,11 +58,7 @@ export class ArticulosListComponent {
   categorias = signal<Categoria[]>([]);
   selectedId = signal<number | null>(null);
 
-  defaultColDef: ColDef = {
-    sortable: true,
-    resizable: true,
-    filter: false,
-  };
+  defaultColDef: ColDef = AG_GRID_DEFAULT_COL_DEF;
 
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 

@@ -9,6 +9,7 @@ import { environment } from '../../../../../../../enviroments/environment';
 
 import { AlmacenesService } from '../../data/almacenes.service';
 import { InventarioItem } from '../../data/almacenes.models';
+import { AG_GRID_DEFAULT_COL_DEF } from '../../../../../../shared/utils/ag-grid-defaults';
 
 type FieldErrors = Record<string, string[]>;
 
@@ -45,10 +46,7 @@ export class AlmacenFormComponent {
   invRows = signal<InventarioItem[]>([]);
   invError = signal<string | null>(null);
 
-  invDefaultColDef: ColDef = {
-    sortable: true,
-    resizable: true,
-  };
+  invDefaultColDef: ColDef = AG_GRID_DEFAULT_COL_DEF;
 
   invColDefs: ColDef<InventarioItem>[] = [
     { headerName: 'Artículo ID', field: 'articulo_id', width: 110 },

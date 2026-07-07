@@ -8,6 +8,7 @@ import { ColDef } from 'ag-grid-community';
 import { ClientesService } from '../../data/clientes.service';
 import { CtaXCobrar } from '../../data/clientes.models';
 import { formatDate } from '../../../../../shared/utils/date.utils';
+import { AG_GRID_DEFAULT_COL_DEF } from '../../../../../shared/utils/ag-grid-defaults';
 
 type FieldErrors = Record<string, string[]>;
 
@@ -41,7 +42,7 @@ export class ClienteFormComponent {
   ecSaldo = signal<number>(0);
   ecRows = signal<CtaXCobrar[]>([]);
 
-  ecDefaultColDef: ColDef = { sortable: true, resizable: true };
+  ecDefaultColDef: ColDef = AG_GRID_DEFAULT_COL_DEF;
 
   ecColDefs: ColDef<CtaXCobrar>[] = [
     {

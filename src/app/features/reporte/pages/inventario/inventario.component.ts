@@ -6,6 +6,7 @@ import { ColDef, GridApi, GridReadyEvent } from 'ag-grid-community';
 import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { InventarioService } from '../../data/inventario.service';
 import { Almacen, InventarioRow } from '../../data/inventario.models';
+import { AG_GRID_DEFAULT_COL_DEF } from '../../../../shared/utils/ag-grid-defaults';
 
 @Component({
   selector: 'app-inventario',
@@ -36,7 +37,7 @@ export class InventarioComponent {
 
   private search$ = new Subject<string>();
 
-  defaultColDef: ColDef = { sortable: true, resizable: true, filter: false };
+  defaultColDef: ColDef = AG_GRID_DEFAULT_COL_DEF;
 
   overlayNoRowsTemplate = `<div class="ag-overlay-msg">No hay registros de inventario para mostrar.</div>`;
   overlayLoadingTemplate = `<div class="ag-overlay-msg">Cargando...</div>`;

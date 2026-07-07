@@ -6,6 +6,7 @@ import { ColDef, GridApi, GridReadyEvent } from 'ag-grid-community';
 
 import { CajaService } from '../../data/caja.service';
 import { CorteCaja, MovimientoCaja } from '../../data/caja.models';
+import { AG_GRID_DEFAULT_COL_DEF } from '../../../../shared/utils/ag-grid-defaults';
 
 @Component({
   selector: 'app-corte-show',
@@ -27,7 +28,7 @@ export class CorteShowComponent {
   overlayNoRowsTemplate  = `<div class="ag-overlay-msg">Sin movimientos.</div>`;
   overlayLoadingTemplate = `<div class="ag-overlay-msg">Cargando...</div>`;
 
-  defaultColDef: ColDef = { sortable: true, resizable: true, filter: false };
+  defaultColDef: ColDef = AG_GRID_DEFAULT_COL_DEF;
 
   colDefs: ColDef<MovimientoCaja>[] = [
     { headerName: 'ID', field: 'id', width: 80 },

@@ -16,6 +16,7 @@ import {
 import { HasPermissionDirective } from '../../../../../core/directives/has-permission.directive';
 import { Categoria } from '../../data/categorias.models';
 import { CategoriasService } from '../../data/categorias.service';
+import { AG_GRID_DEFAULT_COL_DEF } from '../../../../../shared/utils/ag-grid-defaults';
 
 @Component({
   selector: 'app-categorias-list',
@@ -49,7 +50,7 @@ export class CategoriasListComponent {
 
   banner = signal<{ type: 'success' | 'danger' | 'info'; text: string } | null>(null);
 
-  defaultColDef: ColDef = { sortable: true, resizable: true, filter: false };
+  defaultColDef: ColDef = AG_GRID_DEFAULT_COL_DEF;
 
   colDefs: ColDef<Categoria>[] = [
     { headerName: 'ID', field: 'id', width: 90 },

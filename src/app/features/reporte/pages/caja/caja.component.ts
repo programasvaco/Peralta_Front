@@ -18,6 +18,7 @@ import { MovimientoCaja } from '../../data/caja.models';
 import { HasPermissionDirective } from '../../../../core/directives/has-permission.directive';
 import { AlmacenesService } from '../../../settings/pages/almacenes/data/almacenes.service';
 import { Almacen } from '../../../settings/pages/almacenes/data/almacenes.models';
+import { AG_GRID_DEFAULT_COL_DEF } from '../../../../shared/utils/ag-grid-defaults';
 import { UserStorageService } from '../../../../core/storage/user-storage.service';
 import { formatDate, getTodayString } from '../../../../shared/utils/date.utils';
 
@@ -76,7 +77,7 @@ export class CajaComponent {
     almacen_id:  new FormControl<number | null>(null),
   });
 
-  defaultColDef: ColDef = { sortable: true, resizable: true, filter: false };
+  defaultColDef: ColDef = AG_GRID_DEFAULT_COL_DEF;
 
   overlayNoRowsTemplate = `<div class="ag-overlay-msg">No hay movimientos para mostrar.</div>`;
   overlayLoadingTemplate = `<div class="ag-overlay-msg">Cargando...</div>`;

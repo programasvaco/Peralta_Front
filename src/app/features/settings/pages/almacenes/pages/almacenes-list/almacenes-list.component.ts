@@ -18,6 +18,7 @@ import {
 } from '@coreui/angular';
 import { Almacen } from '../../data/almacenes.models';
 import { AlmacenesService } from '../../data/almacenes.service';
+import { AG_GRID_DEFAULT_COL_DEF } from '../../../../../../shared/utils/ag-grid-defaults';
 import { HasPermissionDirective } from 'src/app/core/directives/has-permission.directive';
 
 @Component({
@@ -54,11 +55,7 @@ export class AlmacenesListComponent {
   rows = signal<Almacen[]>([]);
   selectedId = signal<number | null>(null);
 
-  defaultColDef: ColDef = {
-    sortable: true,
-    resizable: true,
-    filter: false,
-  };
+  defaultColDef: ColDef = AG_GRID_DEFAULT_COL_DEF;
 
   overlayNoRowsTemplate = `<div class="ag-overlay-msg">No hay almacenes para mostrar.</div>`;
   overlayLoadingTemplate = `<div class="ag-overlay-msg">Cargando...</div>`;

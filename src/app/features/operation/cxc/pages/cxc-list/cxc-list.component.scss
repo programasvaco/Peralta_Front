@@ -56,16 +56,23 @@
 
 .row-vencida td { background: rgba(229, 83, 83, .04); }
 
-/* ── Columnas fijas y anchos consistentes ── */
+/* ── Columnas fijas y anchos consistentes ──
+   table-layout auto: la tabla nunca se comprime por debajo de su
+   contenido; si no cabe, .table-responsive activa scroll horizontal
+   en vez de cortar/ocultar columnas (p.ej. "Cliente"). */
 .crud-grid table {
-  table-layout: fixed;
+  min-width: 900px;
 }
 
 .crud-grid td,
 .crud-grid th {
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.crud-grid th:nth-child(2),
+.crud-grid td:nth-child(2) {
+  min-width: 200px;
+  white-space: normal;
 }
 
 .col-actions {
