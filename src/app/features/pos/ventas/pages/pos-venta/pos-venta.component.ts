@@ -86,13 +86,19 @@ export class PosVentaComponent {
   private clienteQuery = signal('');
   clienteDropdownOpen = signal(false);
 
-  clientesFiltrados = computed(() => {
+  // Cantidad de clientes visibles en el dropdown; crece al hacer scroll (evita renderizar cientos de <li> de golpe)
+  private static readonly CLIENTE_PAGE_SIZE = 20;
+  private clienteVisibleCount = signal(PosVentaComponent.CLIENTE_PAGE_SIZE);
+
+  private clientesFiltradosAll = computed(() => {
     const q = this.clienteQuery().toLowerCase().trim();
-    if (!q) return this.clientes().slice(0, 20);
-    return this.clientes()
-      .filter(c => c.nombre?.toLowerCase().includes(q))
-      .slice(0, 20);
+    if (!q) return this.clientes();
+    return this.clientes().filter(c => c.nombre?.toLowerCase().includes(q));
   });
+
+  clientesFiltrados = computed(() =>
+    this.clientesFiltradosAll().slice(0, this.clienteVisibleCount())
+  );
 
   // Catálogo visual artículos (infinite)
   articuloSearch = signal('');
@@ -340,6 +346,9 @@ export class PosVentaComponent {
     this.clientesSvc.list({ activo: true, per_page: 500 }).subscribe({
       next: (res: any) => {
         const data = Array.isArray(res) ? res : (res?.data ?? []);
+        data.sort((a: any, b: any) =>
+          (a.nombre ?? '').localeCompare(b.nombre ?? '', 'es', { sensitivity: 'base' })
+        );
         this.clientes.set(data);
         // Setear nombre del cliente por defecto una vez que la lista esté disponible
         const clientePorDefecto = data.find((c: any) => c.id === this.form.value.cliente_id);
@@ -527,12 +536,14 @@ export class PosVentaComponent {
   onClienteInput(valor: string) {
     this.clienteNombreCtrl.setValue(valor, { emitEvent: false });
     this.clienteQuery.set(valor);
+    this.clienteVisibleCount.set(PosVentaComponent.CLIENTE_PAGE_SIZE);
     this.clienteDropdownOpen.set(true);
     // Si borra el texto, limpiar selección
     if (!valor.trim()) this.form.patchValue({ cliente_id: null });
   }
 
   onClienteFocus() {
+    this.clienteVisibleCount.set(PosVentaComponent.CLIENTE_PAGE_SIZE);
     this.clienteDropdownOpen.set(true);
   }
 
@@ -543,6 +554,7 @@ export class PosVentaComponent {
   onClienteClear() {
     this.clienteNombreCtrl.setValue('', { emitEvent: false });
     this.clienteQuery.set('');
+    this.clienteVisibleCount.set(PosVentaComponent.CLIENTE_PAGE_SIZE);
     this.form.patchValue({ cliente_id: null });
     this.clienteDropdownOpen.set(true);
     this.clearBackendError('cliente_id');
@@ -554,6 +566,14 @@ export class PosVentaComponent {
     this.clienteDropdownOpen.set(false);
     this.form.patchValue({ cliente_id: c.id });
     this.clearBackendError('cliente_id');
+  }
+
+  onClienteDropdownScroll(event: Event) {
+    const el = event.target as HTMLElement;
+    const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 40;
+    if (nearBottom && this.clienteVisibleCount() < this.clientesFiltradosAll().length) {
+      this.clienteVisibleCount.update(n => n + PosVentaComponent.CLIENTE_PAGE_SIZE);
+    }
   }
 
   onClienteInputChange(nombre: string) {

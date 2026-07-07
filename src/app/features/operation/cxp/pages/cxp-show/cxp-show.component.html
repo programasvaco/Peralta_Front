@@ -51,12 +51,12 @@
         </div>
         <div class="info-item">
           <span class="info-label">Fecha</span>
-          <span>{{ c.fecha | date:'dd/MM/yyyy' }}</span>
+          <span>{{ formatDateTime(c.fecha) }}</span>
         </div>
         <div class="info-item">
           <span class="info-label">Vencimiento</span>
           <span [class.text-danger]="esVencida()" [class.fw-semibold]="esVencida()">
-            {{ c.vencimiento | date:'dd/MM/yyyy' }}
+            {{ formatDateTime(c.vencimiento) }}
           </span>
         </div>
         <div class="info-item">
@@ -125,7 +125,7 @@
           <tbody>
             <tr *ngFor="let d of c.detalles; let i = index">
               <td>{{ i + 1 }}</td>
-              <td>{{ d.fecha | date:'dd/MM/yyyy' }}</td>
+              <td>{{ formatDateTime(d.fecha) }}</td>
               <td>
                 <c-badge [color]="tipoBadge(d.tipo)">{{ d.tipo }}</c-badge>
               </td>

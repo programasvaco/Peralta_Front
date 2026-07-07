@@ -98,13 +98,18 @@ export interface OtraFormaPagoRow {
   total: number;
 }
 
+export interface VentaCreditoRow {
+  cliente: string | null;
+  total: number;
+}
+
 export interface ReporteDiarioResponse {
   fecha: string;
   efectivo: { total: number; tickets: number };
   otras_formas_pago: OtraFormaPagoRow[];
   total_otras_formas_pago: number;
   subtotal_contado: number;
-  credito: { total: number; tickets: number };
+  credito: { total: number; tickets: number; ventas: VentaCreditoRow[] };
   total_venta_dia: number;
   recuperado: { total: number; abonos: number };
 }

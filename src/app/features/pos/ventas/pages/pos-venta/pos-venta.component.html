@@ -279,7 +279,8 @@
           </span>
         </div>
 
-        <ul *ngIf="clienteDropdownOpen() && clientesFiltrados().length" class="cliente-dropdown">
+        <ul *ngIf="clienteDropdownOpen() && clientesFiltrados().length" class="cliente-dropdown"
+          (scroll)="onClienteDropdownScroll($event)">
           <li *ngFor="let c of clientesFiltrados()" class="cliente-option" (mousedown)="onClienteSelect(c)">
             <span class="cliente-option-icon">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

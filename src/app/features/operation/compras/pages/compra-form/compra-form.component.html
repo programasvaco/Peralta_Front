@@ -93,7 +93,7 @@
 
               <div class="col-12 col-md-3" *ngIf="!id && form.get('credito')?.value">
                 <label class="form-label">Días crédito</label>
-                <input class="form-control" type="number" min="1" formControlName="dias_credito" />
+                <input class="form-control" type="number" min="1" formControlName="dias_credito" appSelectOnFocus />
                 <div class="text-danger small" *ngIf="fieldErrors()['dias_credito']?.length">
                   {{ fieldErrors()['dias_credito'][0] }}
                 </div>
@@ -193,32 +193,32 @@
 
                     <td>
                       <input class="form-control text-end" type="number" step="0.01" min="0" formControlName="cantidad"
-                        [readonly]="!!id" />
+                        [readonly]="!!id" appSelectOnFocus />
                     </td>
 
                     <td>
                       <input class="form-control text-end" type="number" step="0.01" min="0" formControlName="empaque"
-                        [readonly]="!!id" />
+                        [readonly]="!!id" appSelectOnFocus />
                     </td>
 
                     <td>
                       <input class="form-control text-end" type="number" step="0.01" min="0" formControlName="costo"
-                        [readonly]="!!id" />
+                        [readonly]="!!id" appSelectOnFocus />
                     </td>
 
                     <td>
                       <input class="form-control text-end" type="number" step="0.01" min="0" formControlName="impuestos"
-                        [readonly]="!!id" />
+                        [readonly]="!!id" appSelectOnFocus />
                     </td>
 
                     <td>
                       <input class="form-control text-end" type="number" step="0.01" min="0" formControlName="precio"
-                        [readonly]="!!id" />
+                        [readonly]="!!id" appSelectOnFocus />
                     </td>
 
                     <td>
                       <input class="form-control text-end" type="number" step="0.01" min="0"
-                        formControlName="precio_min" [readonly]="!!id" />
+                        formControlName="precio_min" [readonly]="!!id" appSelectOnFocus />
                     </td>
 
                     <td class="text-end">

@@ -24,6 +24,7 @@ export class ReporteDiarioComponent {
   loading = signal(false);
   banner  = signal<{ type: 'danger'; text: string } | null>(null);
   reporte = signal<ReporteDiarioResponse | null>(null);
+  creditoAbierto = signal(false);
 
   constructor(
     private ventasSvc: VentasListService,
@@ -52,6 +53,7 @@ export class ReporteDiarioComponent {
 
   onFecha(v: string) { this.fecha.set(v); }
   onAlmacen(v: string) { this.almacenId.set(v ? Number(v) : null); }
+  toggleCredito() { this.creditoAbierto.update(v => !v); }
 
   generar() {
     if (!this.fecha()) {
@@ -61,6 +63,7 @@ export class ReporteDiarioComponent {
 
     this.banner.set(null);
     this.loading.set(true);
+    this.creditoAbierto.set(false);
     this.syncQueryParams();
 
     this.ventasSvc.diario({ fecha: this.fecha(), almacen_id: this.almacenId() }).subscribe({

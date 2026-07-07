@@ -109,6 +109,24 @@
             <option value="entrada">Entradas</option>
           </select>
 
+          <label class="ms-2">Del:</label>
+          <input
+            type="date"
+            class="form-control form-control-sm"
+            style="width: auto;"
+            [value]="fechaInicio()"
+            (change)="onFechaInicio($any($event.target).value)"
+          />
+
+          <label>al:</label>
+          <input
+            type="date"
+            class="form-control form-control-sm"
+            style="width: auto;"
+            [value]="fechaFin()"
+            (change)="onFechaFin($any($event.target).value)"
+          />
+
           <button
             type="button"
             class="btn btn-outline-secondary btn-sm ms-auto"
@@ -117,11 +135,23 @@
           >
             {{ loadingMov() ? 'Cargando...' : 'Refrescar' }}
           </button>
+
+          <button
+            type="button"
+            class="btn btn-outline-primary btn-sm"
+            (click)="imprimirReporte()"
+            [disabled]="printingReporte() || loadingMov()"
+          >
+            {{ printingReporte() ? 'Imprimiendo...' : 'Imprimir reporte' }}
+          </button>
         </div>
 
         <!-- Error -->
         <div *ngIf="errorMov()" class="alert alert-danger m-2" style="font-size:0.85rem;">
           {{ errorMov() }}
+        </div>
+        <div *ngIf="errorReporte()" class="alert alert-danger m-2" style="font-size:0.85rem;">
+          {{ errorReporte() }}
         </div>
 
         <!-- Grid de movimientos -->

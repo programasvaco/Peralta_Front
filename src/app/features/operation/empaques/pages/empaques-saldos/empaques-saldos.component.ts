@@ -7,6 +7,8 @@ import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { EmpaquesService } from '../../data/empaques.service';
 import { Empaque, EmpaqueClienteSaldo, EmpaqueMovimiento } from '../../data/empaques.models';
 import { MovimientoDialogComponent } from '../movimiento-dialog/movimiento-dialog.component';
+import { PrinterService } from '../../../../../shared/services/printer.service';
+import { getTodayString } from '../../../../../shared/utils/date.utils';
 
 @Component({
   selector: 'app-empaques-saldos',
@@ -58,6 +60,12 @@ export class EmpaquesSaldosComponent implements OnInit {
   errorMov          = signal<string | null>(null);
   filterTipo        = signal<'salida' | 'entrada' | ''>('');
 
+  // Rango de fechas del reporte (por defecto: último mes al seleccionar cliente)
+  fechaInicio       = signal('');
+  fechaFin          = signal('');
+  printingReporte   = signal(false);
+  errorReporte      = signal<string | null>(null);
+
   private movGridApi?: GridApi;
   private search$   = new Subject<string>();
 
@@ -107,7 +115,10 @@ export class EmpaquesSaldosComponent implements OnInit {
   overlayNoRows    = `<div class="ag-overlay-msg">Sin movimientos.</div>`;
   overlayLoading   = `<div class="ag-overlay-msg">Cargando...</div>`;
 
-  constructor(private svc: EmpaquesService) {}
+  constructor(
+    private svc: EmpaquesService,
+    private printerSvc: PrinterService,
+  ) {}
 
   ngOnInit() {
     this.svc.listEmpaques().subscribe({
@@ -165,6 +176,14 @@ export class EmpaquesSaldosComponent implements OnInit {
   selectSaldo(s: EmpaqueClienteSaldo) {
     this.selectedSaldo.set(s);
     this.filterTipo.set('');
+    this.errorReporte.set(null);
+
+    // Al seleccionar un cliente, por defecto se muestran los movimientos del último mes
+    const hoy = new Date();
+    const haceUnMes = new Date(hoy.getFullYear(), hoy.getMonth() - 1, hoy.getDate());
+    this.fechaInicio.set(this.toDateStr(haceUnMes));
+    this.fechaFin.set(getTodayString());
+
     this.loadMovimientos();
   }
 
@@ -181,6 +200,8 @@ export class EmpaquesSaldosComponent implements OnInit {
     this.svc.movimientos({
       cliente_id: sel.cliente_id,
       tipo: this.filterTipo() || null,
+      fecha_inicio: this.fechaInicio() || null,
+      fecha_fin: this.fechaFin() || null,
     }).subscribe({
       next: data => {
         this.movimientos.set(data);
@@ -201,8 +222,55 @@ export class EmpaquesSaldosComponent implements OnInit {
     this.loadMovimientos();
   }
 
+  onFechaInicio(value: string) {
+    this.fechaInicio.set(value);
+    this.loadMovimientos();
+  }
+
+  onFechaFin(value: string) {
+    this.fechaFin.set(value);
+    this.loadMovimientos();
+  }
+
   onMovGridReady(e: GridReadyEvent) {
     this.movGridApi = e.api;
+  }
+
+  // ── Reporte impreso (ESC/POS) ──────────────────────────────────────────
+
+  async imprimirReporte() {
+    const sel = this.selectedSaldo();
+    if (!sel || !this.fechaInicio() || !this.fechaFin()) return;
+
+    this.printingReporte.set(true);
+    this.errorReporte.set(null);
+
+    this.svc.getReporteTicket({
+      cliente_id: sel.cliente_id,
+      empaque_id: sel.empaque_id,
+      fecha_inicio: this.fechaInicio(),
+      fecha_fin: this.fechaFin(),
+    }).subscribe({
+      next: async data => {
+        try {
+          await this.printerSvc.print(data);
+        } catch {
+          this.errorReporte.set('No se pudo conectar con la impresora.');
+        }
+        this.printingReporte.set(false);
+      },
+      error: () => {
+        this.printingReporte.set(false);
+        this.errorReporte.set('No se pudo generar el reporte.');
+      },
+    });
+  }
+
+  private toDateStr(d: Date): string {
+    const y   = d.getFullYear();
+    const m   = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────

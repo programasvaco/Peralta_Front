@@ -84,13 +84,28 @@
 
     <!-- ③ Crédito del día -->
     <div class="reporte-seccion">
-      <div class="reporte-seccion-header">
+      <div class="reporte-seccion-header reporte-seccion-header--toggle"
+           (click)="r.credito.tickets && toggleCredito()">
         <span class="reporte-num">3</span>
         <h5 class="mb-0">Venta a crédito del día</h5>
         <span class="badge bg-secondary ms-2">{{ r.credito.tickets }} ticket(s)</span>
+        <span class="reporte-toggle-icon ms-auto" *ngIf="r.credito.tickets"
+              [class.reporte-toggle-icon--abierto]="creditoAbierto()">▾</span>
       </div>
+
       <div class="reporte-monto text-warning">
         ${{ r.credito.total | number:'1.2-2' }}
+      </div>
+
+      <div class="reporte-detalle-lista" *ngIf="creditoAbierto() && r.credito.ventas.length">
+        <table class="table table-sm table-borderless mb-0">
+          <tbody>
+            <tr *ngFor="let v of r.credito.ventas">
+              <td class="text-muted">{{ v.cliente || 'Sin cliente' }}</td>
+              <td class="text-end fw-semibold">${{ v.total | number:'1.2-2' }}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
@@ -136,6 +151,28 @@
     align-items: center;
     gap: .5rem;
     margin-bottom: .5rem;
+  }
+
+  .reporte-seccion-header--toggle {
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .reporte-toggle-icon {
+    transition: transform .15s ease;
+    color: var(--cui-secondary-color, #6c757d);
+  }
+
+  .reporte-toggle-icon--abierto {
+    transform: rotate(-180deg);
+  }
+
+  .reporte-detalle-lista {
+    margin-top: .5rem;
+    padding-top: .5rem;
+    border-top: 1px dashed var(--cui-border-color, #dee2e6);
+    max-height: 260px;
+    overflow-y: auto;
   }
 
   .reporte-num {

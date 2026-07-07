@@ -89,7 +89,7 @@
             <th class="text-end" style="width:120px;">Importe</th>
             <th class="text-end" style="width:120px;">Saldo</th>
             <th style="width:110px;">Estado</th>
-            <th style="width:70px;"></th>
+            <th class="col-actions" style="width:70px;"></th>
           </tr>
         </thead>
         <tbody>
@@ -115,7 +115,7 @@
             <td>
               <c-badge [color]="estadoBadge(c)">{{ estadoLabel(c) }}</c-badge>
             </td>
-            <td>
+            <td class="col-actions">
               <button class="btn btn-light btn-sm" type="button" (click)="ver(c)">
                 Ver
               </button>

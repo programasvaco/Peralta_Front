@@ -18,6 +18,7 @@ import { CxcService } from '../../data/cxc.service';
 import { FormasPagoService } from '../../../../catalog/formas-pago/data/formas-pago.service';
 import { CtaXCobrar } from '../../data/cxc.models';
 import { FormaPago } from '../../../../catalog/formas-pago/data/formas-pago.models';
+import { formatDateTime } from '../../../../../shared/utils/date.utils';
 
 @Component({
   selector: 'app-cxc-show',
@@ -130,6 +131,8 @@ export class CxcShowComponent {
   volver() {
     this.router.navigate(['/operation/cxc']);
   }
+
+  formatDateTime = formatDateTime;
 
   esVencida(): boolean {
     const c = this.cxc();

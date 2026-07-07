@@ -24,6 +24,7 @@ import { Articulo } from '../../../../catalog/articulos/data/articulos.models';
 import { CompraCreatePayload, CompraShowResponse } from '../../data/compras.models';
 import { HasPermissionDirective } from '../../../../../core/directives/has-permission.directive';
 import { getTodayString } from '../../../../../shared/utils/date.utils';
+import { SelectOnFocusDirective } from '../../../../../shared/directives/select-on-focus.directive';
 
 type FormaPago = { id: number; descripcion: string };
 
@@ -43,6 +44,7 @@ type FormaPago = { id: number; descripcion: string };
     SpinnerComponent,
     BadgeComponent,
     HasPermissionDirective,
+    SelectOnFocusDirective,
   ],
   templateUrl: './compra-form.component.html',
   styleUrl: './compra-form.component.scss',

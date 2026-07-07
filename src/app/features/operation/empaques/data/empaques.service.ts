@@ -84,4 +84,24 @@ export class EmpaquesService {
       responseType: 'arraybuffer',
     }).pipe(map(utf8ToCp850));
   }
+
+  getReporteTicket(q: {
+    cliente_id: number;
+    empaque_id?: number | null;
+    fecha_inicio: string;
+    fecha_fin: string;
+    cols?: number;
+  }): Observable<ArrayBuffer> {
+    let params = new HttpParams()
+      .set('cliente_id', String(q.cliente_id))
+      .set('fecha_inicio', q.fecha_inicio)
+      .set('fecha_fin', q.fecha_fin)
+      .set('cols', String(q.cols ?? 48));
+    if (q.empaque_id != null) params = params.set('empaque_id', String(q.empaque_id));
+
+    return this.http.get(`${this.base}/api/empaque-movimientos/reporte/ticket`, {
+      params,
+      responseType: 'arraybuffer',
+    }).pipe(map(utf8ToCp850));
+  }
 }

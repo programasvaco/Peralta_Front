@@ -8,6 +8,7 @@ import { CajaService } from '../../data/caja.service';
 import { CorteCaja } from '../../data/caja.models';
 import { AlmacenesService } from '../../../settings/pages/almacenes/data/almacenes.service';
 import { Almacen } from '../../../settings/pages/almacenes/data/almacenes.models';
+import { formatDate } from '../../../../shared/utils/date.utils';
 
 @Component({
   selector: 'app-cortes-list',
@@ -53,9 +54,7 @@ export class CortesListComponent {
       headerName: 'Fecha',
       field: 'fecha',
       width: 130,
-      valueFormatter: (p) => p.value
-        ? new Date(p.value + 'T00:00:00').toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })
-        : '-',
+      valueFormatter: (p) => formatDate(p.value),
     },
     {
       headerName: 'Importe',

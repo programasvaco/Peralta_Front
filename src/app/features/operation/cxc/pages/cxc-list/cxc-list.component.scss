@@ -56,6 +56,34 @@
 
 .row-vencida td { background: rgba(229, 83, 83, .04); }
 
+/* ── Columnas fijas y anchos consistentes ── */
+.crud-grid table {
+  table-layout: fixed;
+}
+
+.crud-grid td,
+.crud-grid th {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.col-actions {
+  position: sticky;
+  right: 0;
+  z-index: 1;
+  text-align: center;
+  background: var(--cui-card-bg, #fff);
+}
+
+thead .col-actions { z-index: 2; }
+
+.row-vencida .col-actions {
+  background:
+    linear-gradient(rgba(229, 83, 83, .04), rgba(229, 83, 83, .04)),
+    var(--cui-card-bg, #fff);
+}
+
 @media (max-width: 768px) {
   .crud-header, .crud-toolbar { flex-direction: column; align-items: stretch; }
   .crud-pagination { margin-left: 0; }
