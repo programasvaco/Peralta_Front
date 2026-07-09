@@ -9,6 +9,7 @@ import { Empaque, EmpaqueClienteSaldo, EmpaqueMovimiento } from '../../data/empa
 import { MovimientoDialogComponent } from '../movimiento-dialog/movimiento-dialog.component';
 import { PrinterService } from '../../../../../shared/services/printer.service';
 import { getTodayString } from '../../../../../shared/utils/date.utils';
+import { AG_GRID_DEFAULT_COL_DEF } from '../../../../../shared/utils/ag-grid-defaults';
 
 @Component({
   selector: 'app-empaques-saldos',
@@ -69,7 +70,7 @@ export class EmpaquesSaldosComponent implements OnInit {
   private movGridApi?: GridApi;
   private search$   = new Subject<string>();
 
-  defaultColDef: ColDef = { sortable: true, resizable: true };
+  defaultColDef: ColDef = AG_GRID_DEFAULT_COL_DEF;
 
   colDefsMov: ColDef<EmpaqueMovimiento>[] = [
     { headerName: 'Folio',    field: 'folio',    width: 120 },

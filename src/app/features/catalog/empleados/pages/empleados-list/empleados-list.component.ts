@@ -15,6 +15,7 @@ import {
 import { HasPermissionDirective } from '../../../../../core/directives/has-permission.directive';
 import { EmpleadosService } from '../../data/empleados.service';
 import { Empleado } from '../../data/empleados.models';
+import { AG_GRID_DEFAULT_COL_DEF } from '../../../../../shared/utils/ag-grid-defaults';
 
 @Component({
   selector: 'app-empleados-list',
@@ -52,7 +53,7 @@ export class EmpleadosListComponent {
   deleteModalVisible = signal(false);
   deleting = signal(false);
 
-  defaultColDef: ColDef = { sortable: true, resizable: true, filter: false };
+  defaultColDef: ColDef = AG_GRID_DEFAULT_COL_DEF;
 
   colDefs: ColDef<Empleado>[] = [
     { headerName: 'ID', field: 'id', width: 90 },

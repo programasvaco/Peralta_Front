@@ -3,6 +3,7 @@ import { Component, signal } from '@angular/core';
 import { AgGridAngular } from 'ag-grid-angular';
 import { ColDef, GridApi, GridReadyEvent } from 'ag-grid-community';
 import { Almacen, InventarioItem, InventoryApi } from '../../data-access/inventory.api';
+import { AG_GRID_DEFAULT_COL_DEF } from '../../../../shared/utils/ag-grid-defaults';
 
 @Component({
   selector: 'app-existencia',
@@ -22,7 +23,7 @@ export class ExistenciaComponent {
   loading = signal(false);
   banner = signal<{ type: 'danger'; text: string } | null>(null);
 
-  defaultColDef: ColDef = { sortable: true, resizable: true, filter: false };
+  defaultColDef: ColDef = AG_GRID_DEFAULT_COL_DEF;
 
   overlayNoRowsTemplate = `<div class="ag-overlay-msg">Sin registros de existencia.</div>`;
   overlayLoadingTemplate = `<div class="ag-overlay-msg">Cargando...</div>`;

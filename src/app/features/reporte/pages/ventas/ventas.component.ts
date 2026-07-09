@@ -9,6 +9,7 @@ import { VentaFormaPagoRow, VentaPorArticuloRow } from '../../../operation/venta
 import { AlmacenesService } from '../../../settings/pages/almacenes/data/almacenes.service';
 import { Almacen } from '../../../settings/pages/almacenes/data/almacenes.models';
 import { getTodayString } from '../../../../shared/utils/date.utils';
+import { AG_GRID_DEFAULT_COL_DEF } from '../../../../shared/utils/ag-grid-defaults';
 
 @Component({
   selector: 'app-reporte-ventas',
@@ -38,7 +39,7 @@ export class VentasReporteComponent {
   formasPago        = signal<VentaFormaPagoRow[]>([]);
   totalesFormasPago = signal({ tickets: 0, total: 0 });
 
-  defaultColDef: ColDef = { sortable: true, resizable: true, filter: false };
+  defaultColDef: ColDef = AG_GRID_DEFAULT_COL_DEF;
   overlayNoRowsTemplate = `<div class="ag-overlay-msg">No hay datos para el periodo seleccionado.</div>`;
   overlayLoadingTemplate = `<div class="ag-overlay-msg">Cargando...</div>`;
 

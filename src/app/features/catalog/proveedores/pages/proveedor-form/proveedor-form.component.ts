@@ -8,6 +8,7 @@ import { ColDef } from 'ag-grid-community';
 import { ProveedoresService } from '../../data/proveedores.service';
 import { CtaXPagar } from '../../data/proveedores.models';
 import { formatDate } from '../../../../../shared/utils/date.utils';
+import { AG_GRID_DEFAULT_COL_DEF } from '../../../../../shared/utils/ag-grid-defaults';
 
 type FieldErrors = Record<string, string[]>;
 
@@ -40,7 +41,7 @@ export class ProveedorFormComponent {
   ecSaldo = signal<number>(0);
   ecRows = signal<CtaXPagar[]>([]);
 
-  ecDefaultColDef: ColDef = { sortable: true, resizable: true };
+  ecDefaultColDef: ColDef = AG_GRID_DEFAULT_COL_DEF;
 
   ecColDefs: ColDef<CtaXPagar>[] = [
     { headerName: 'CxP ID', field: 'id', width: 100 },

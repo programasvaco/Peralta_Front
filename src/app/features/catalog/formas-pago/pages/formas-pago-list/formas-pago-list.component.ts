@@ -8,6 +8,7 @@ import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { HasPermissionDirective } from '../../../../../core/directives/has-permission.directive';
 import { FormasPagoService } from '../../data/formas-pago.service';
 import { FormaPago } from '../../data/formas-pago.models';
+import { AG_GRID_DEFAULT_COL_DEF } from '../../../../../shared/utils/ag-grid-defaults';
 
 @Component({
   selector: 'app-formas-pago-list',
@@ -36,7 +37,7 @@ export class FormasPagoListComponent {
   // cache del backend (como index devuelve array)
   private allRows: FormaPago[] = [];
 
-  defaultColDef: ColDef = { sortable: true, resizable: true, filter: false };
+  defaultColDef: ColDef = AG_GRID_DEFAULT_COL_DEF;
 
   colDefs: ColDef<FormaPago>[] = [
     { headerName: 'ID', field: 'id', width: 90 },

@@ -9,6 +9,7 @@ import { CorteCaja } from '../../data/caja.models';
 import { AlmacenesService } from '../../../settings/pages/almacenes/data/almacenes.service';
 import { Almacen } from '../../../settings/pages/almacenes/data/almacenes.models';
 import { formatDate } from '../../../../shared/utils/date.utils';
+import { AG_GRID_DEFAULT_COL_DEF } from '../../../../shared/utils/ag-grid-defaults';
 
 @Component({
   selector: 'app-cortes-list',
@@ -40,7 +41,7 @@ export class CortesListComponent {
   overlayNoRowsTemplate  = `<div class="ag-overlay-msg">No hay cortes para mostrar.</div>`;
   overlayLoadingTemplate = `<div class="ag-overlay-msg">Cargando...</div>`;
 
-  defaultColDef: ColDef = { sortable: true, resizable: true, filter: false };
+  defaultColDef: ColDef = AG_GRID_DEFAULT_COL_DEF;
 
   colDefs: ColDef<CorteCaja>[] = [
     {

@@ -13,6 +13,7 @@ import { AlmacenesService } from '../../../../settings/pages/almacenes/data/alma
 import { VentaListItem, PaginatedResponse } from '../../data/ventas-list.models';
 import { Almacen } from '../../../../settings/pages/almacenes/data/almacenes.models';
 import { formatDate, getTodayString } from '../../../../../shared/utils/date.utils';
+import { AG_GRID_DEFAULT_COL_DEF } from '../../../../../shared/utils/ag-grid-defaults';
 
 @Component({
   selector: 'app-ventas-list',
@@ -42,7 +43,7 @@ export class VentasListComponent {
     fecha:      new FormControl<string | null>(this.today()),
   });
 
-  defaultColDef: ColDef = { sortable: true, resizable: true, filter: false };
+  defaultColDef: ColDef = AG_GRID_DEFAULT_COL_DEF;
 
   overlayNoRowsTemplate  = `<div class="ag-overlay-msg">No hay ventas para mostrar.</div>`;
   overlayLoadingTemplate = `<div class="ag-overlay-msg">Cargando...</div>`;
