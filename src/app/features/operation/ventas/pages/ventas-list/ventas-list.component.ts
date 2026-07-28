@@ -22,6 +22,7 @@ import { Almacen } from '../../../../settings/pages/almacenes/data/almacenes.mod
 import { formatDate, getTodayString } from '../../../../../shared/utils/date.utils';
 import { AG_GRID_DEFAULT_COL_DEF } from '../../../../../shared/utils/ag-grid-defaults';
 import { UserStorageService } from '../../../../../core/storage/user-storage.service';
+import { VentasListStateService } from './ventas-list-state.service';
 
 @Component({
   selector: 'app-ventas-list',
@@ -45,6 +46,7 @@ export class VentasListComponent {
   private userStorage  = inject(UserStorageService);
   private router       = inject(Router);
   private destroyRef   = inject(DestroyRef);
+  private stateSvc     = inject(VentasListStateService);
   private gridApi?: GridApi;
 
   almacenes = signal<Almacen[]>([]);
@@ -62,8 +64,8 @@ export class VentasListComponent {
   }
 
   filtros = new FormGroup({
-    almacen_id: new FormControl<number | null>(null),
-    fecha:      new FormControl<string | null>(this.today()),
+    almacen_id: new FormControl<number | null>(this.stateSvc.state.almacen_id),
+    fecha:      new FormControl<string | null>(this.stateSvc.state.fecha),
   });
 
   defaultColDef: ColDef = AG_GRID_DEFAULT_COL_DEF;
@@ -164,6 +166,7 @@ export class VentasListComponent {
     this.gridApi?.showLoadingOverlay();
 
     const f = this.filtros.getRawValue();
+    this.stateSvc.state = { almacen_id: f.almacen_id, fecha: f.fecha };
 
     this.ventasSvc.list({ fecha: f.fecha, almacen_id: f.almacen_id }).subscribe({
       next: (res: any) => {
@@ -197,7 +200,9 @@ export class VentasListComponent {
   }
 
   clearFilters() {
-    this.filtros.reset({ almacen_id: null, fecha: this.today() });
+    const fecha = this.today();
+    this.stateSvc.state = { almacen_id: null, fecha };
+    this.filtros.reset({ almacen_id: null, fecha });
   }
 
   private ver(item: VentaListItem) {

@@ -16,6 +16,7 @@ import { CxpService } from '../../data/cxp.service';
 import { ProveedoresService } from '../../../../catalog/proveedores/data/proveedores.service';
 import { CtaXPagar, CxpResumen, PaginatedResponse } from '../../data/cxp.models';
 import { Proveedor } from '../../../../catalog/proveedores/data/proveedores.models';
+import { CxpListStateService } from '../../data/cxp-list-state.service';
 
 @Component({
   selector: 'app-cxp-list',
@@ -36,6 +37,7 @@ export class CxpListComponent {
   private proveedoresSvc = inject(ProveedoresService);
   private router        = inject(Router);
   private destroyRef    = inject(DestroyRef);
+  private stateSvc      = inject(CxpListStateService);
 
   loading     = signal(false);
   proveedores = signal<Proveedor[]>([]);
@@ -43,7 +45,7 @@ export class CxpListComponent {
 
   items    = signal<CtaXPagar[]>([]);
   total    = signal(0);
-  page     = signal(1);
+  page     = signal(this.stateSvc.state.page);
   perPage  = signal(25);
   lastPage = signal(1);
 
@@ -52,14 +54,14 @@ export class CxpListComponent {
   hasPaging = computed(() => this.lastPage() > 1);
 
   filtros = new FormGroup({
-    proveedor_id: new FormControl<number | null>(null),
-    estado: new FormControl<'pendientes' | 'vencidas' | 'todas'>('pendientes'),
+    proveedor_id: new FormControl<number | null>(this.stateSvc.state.proveedor_id),
+    estado: new FormControl<'pendientes' | 'vencidas' | 'todas'>(this.stateSvc.state.estado),
   });
 
   constructor() {
     this.loadProveedores();
     this.loadResumen();
-    this.fetch(1);
+    this.fetch(this.page());
 
     this.filtros.valueChanges
       .pipe(debounceTime(250), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
@@ -94,6 +96,11 @@ export class CxpListComponent {
     if (page) this.page.set(page);
 
     const f = this.filtros.getRawValue();
+    this.stateSvc.state = {
+      proveedor_id: f.proveedor_id,
+      estado: f.estado ?? 'pendientes',
+      page: this.page(),
+    };
 
     this.loading.set(true);
 
@@ -129,6 +136,7 @@ export class CxpListComponent {
   }
 
   clearFilters() {
+    this.stateSvc.state = { proveedor_id: null, estado: 'pendientes', page: 1 };
     this.filtros.reset({ proveedor_id: null, estado: 'pendientes' });
   }
 

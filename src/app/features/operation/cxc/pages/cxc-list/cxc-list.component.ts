@@ -16,6 +16,7 @@ import { CxcService } from '../../data/cxc.service';
 import { ClientesService } from '../../../../catalog/clientes/data/clientes.service';
 import { CtaXCobrar, CxcResumen, PaginatedResponse } from '../../data/cxc.models';
 import { Cliente } from '../../../../catalog/clientes/data/clientes.models';
+import { CxcListStateService } from '../../data/cxc-list-state.service';
 
 @Component({
   selector: 'app-cxc-list',
@@ -36,6 +37,7 @@ export class CxcListComponent {
   private clientesSvc = inject(ClientesService);
   private router      = inject(Router);
   private destroyRef  = inject(DestroyRef);
+  private stateSvc    = inject(CxcListStateService);
 
   loading   = signal(false);
   clientes  = signal<Cliente[]>([]);
@@ -43,7 +45,7 @@ export class CxcListComponent {
 
   items    = signal<CtaXCobrar[]>([]);
   total    = signal(0);
-  page     = signal(1);
+  page     = signal(this.stateSvc.state.page);
   perPage  = signal(25);
   lastPage = signal(1);
 
@@ -52,14 +54,14 @@ export class CxcListComponent {
   hasPaging = computed(() => this.lastPage() > 1);
 
   filtros = new FormGroup({
-    cliente_id: new FormControl<number | null>(null),
-    estado: new FormControl<'pendientes' | 'vencidas' | 'todas'>('pendientes'),
+    cliente_id: new FormControl<number | null>(this.stateSvc.state.cliente_id),
+    estado: new FormControl<'pendientes' | 'vencidas' | 'todas'>(this.stateSvc.state.estado),
   });
 
   constructor() {
     this.loadClientes();
     this.loadResumen();
-    this.fetch(1);
+    this.fetch(this.page());
 
     this.filtros.valueChanges
       .pipe(debounceTime(250), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
@@ -94,6 +96,11 @@ export class CxcListComponent {
     if (page) this.page.set(page);
 
     const f = this.filtros.getRawValue();
+    this.stateSvc.state = {
+      cliente_id: f.cliente_id,
+      estado: f.estado ?? 'pendientes',
+      page: this.page(),
+    };
 
     this.loading.set(true);
 
@@ -129,6 +136,7 @@ export class CxcListComponent {
   }
 
   clearFilters() {
+    this.stateSvc.state = { cliente_id: null, estado: 'pendientes', page: 1 };
     this.filtros.reset({ cliente_id: null, estado: 'pendientes' });
   }
 

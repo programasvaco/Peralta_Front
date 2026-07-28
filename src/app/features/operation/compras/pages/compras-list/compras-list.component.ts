@@ -18,6 +18,7 @@ import { Compra, PaginatedResponse } from '../../data/compras.models';
 import { Proveedor } from '../../../../catalog/proveedores/data/proveedores.models';
 import { HasPermissionDirective } from '../../../../../core/directives/has-permission.directive';
 import { getTodayString } from '../../../../../shared/utils/date.utils';
+import { ComprasListStateService } from './compras-list-state.service';
 
 @Component({
   selector: 'app-compras-list',
@@ -40,12 +41,13 @@ export class ComprasListComponent {
   private proveedoresSvc = inject(ProveedoresService);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
+  private stateSvc = inject(ComprasListStateService);
 
   loading = signal(false);
 
   items = signal<Compra[]>([]);
   total = signal(0);
-  page = signal(1);
+  page = signal(this.stateSvc.state.page);
   perPage = signal(15);
   lastPage = signal(1);
 
@@ -54,11 +56,11 @@ export class ComprasListComponent {
   banner = signal<{ type: 'success' | 'danger' | 'info'; text: string } | null>(null);
 
   filtros = new FormGroup({
-    proveedor_id: new FormControl<number | null>(null),
-    fecha_inicio: new FormControl<string | null>(getTodayString()),
-    fecha_fin: new FormControl<string | null>(getTodayString()),
-    mes: new FormControl<number | null>(null),
-    anio: new FormControl<number | null>(null),
+    proveedor_id: new FormControl<number | null>(this.stateSvc.state.proveedor_id),
+    fecha_inicio: new FormControl<string | null>(this.stateSvc.state.fecha_inicio),
+    fecha_fin: new FormControl<string | null>(this.stateSvc.state.fecha_fin),
+    mes: new FormControl<number | null>(this.stateSvc.state.mes),
+    anio: new FormControl<number | null>(this.stateSvc.state.anio),
   });
 
   hasPaging = computed(() => this.lastPage() > 1);
@@ -67,7 +69,7 @@ export class ComprasListComponent {
     this.loadProveedores();
 
     // ✅ Carga inicial inmediata
-    this.fetch(1);
+    this.fetch(this.page());
 
     // ✅ Recarga automática al cambiar filtros (sin botón "Aplicar")
     this.filtros.valueChanges
@@ -102,6 +104,14 @@ export class ComprasListComponent {
     if (page) this.page.set(page);
 
     const f = this.filtros.getRawValue();
+    this.stateSvc.state = {
+      proveedor_id: f.proveedor_id,
+      fecha_inicio: f.fecha_inicio,
+      fecha_fin: f.fecha_fin,
+      mes: f.mes,
+      anio: f.anio,
+      page: this.page(),
+    };
 
     this.loading.set(true);
 
@@ -140,6 +150,15 @@ export class ComprasListComponent {
   }
 
   clearFilters() {
+    this.stateSvc.state = {
+      proveedor_id: null,
+      fecha_inicio: null,
+      fecha_fin: null,
+      mes: null,
+      anio: null,
+      page: 1,
+    };
+
     // OJO: esto disparará valueChanges y hará fetch(1) automáticamente
     this.filtros.reset({
       proveedor_id: null,

@@ -10,6 +10,7 @@ import { AlmacenesService } from '../../../settings/pages/almacenes/data/almacen
 import { Almacen } from '../../../settings/pages/almacenes/data/almacenes.models';
 import { formatDate } from '../../../../shared/utils/date.utils';
 import { AG_GRID_DEFAULT_COL_DEF } from '../../../../shared/utils/ag-grid-defaults';
+import { CortesListStateService } from './cortes-list-state.service';
 
 @Component({
   selector: 'app-cortes-list',
@@ -22,6 +23,7 @@ export class CortesListComponent {
   private cajaSvc     = inject(CajaService);
   private almacenesSvc = inject(AlmacenesService);
   private router      = inject(Router);
+  private stateSvc    = inject(CortesListStateService);
   private gridApi?: GridApi;
 
   rows      = signal<CorteCaja[]>([]);
@@ -30,9 +32,9 @@ export class CortesListComponent {
   almacenes = signal<Almacen[]>([]);
 
   private now  = new Date();
-  mes       = signal(this.now.getMonth() + 1);
-  anio      = signal(this.now.getFullYear());
-  almacenId = signal<number | null>(null);
+  mes       = signal(this.stateSvc.state.mes);
+  anio      = signal(this.stateSvc.state.anio);
+  almacenId = signal<number | null>(this.stateSvc.state.almacenId);
 
   constructor() {
     this.almacenesSvc.list({ activo: true }).subscribe((res) => this.almacenes.set(res));
@@ -124,9 +126,13 @@ export class CortesListComponent {
     });
   }
 
-  onMes(v: string)     { this.mes.set(Number(v));           this.reload(); }
-  onAnio(v: string)    { this.anio.set(Number(v));          this.reload(); }
-  onAlmacen(v: string) { this.almacenId.set(v ? Number(v) : null); this.reload(); }
+  onMes(v: string)     { this.mes.set(Number(v));           this.persistState(); this.reload(); }
+  onAnio(v: string)    { this.anio.set(Number(v));          this.persistState(); this.reload(); }
+  onAlmacen(v: string) { this.almacenId.set(v ? Number(v) : null); this.persistState(); this.reload(); }
+
+  private persistState() {
+    this.stateSvc.state = { mes: this.mes(), anio: this.anio(), almacenId: this.almacenId() };
+  }
 
   meses = [
     { v: 1, l: 'Enero' }, { v: 2, l: 'Febrero' }, { v: 3, l: 'Marzo' },
