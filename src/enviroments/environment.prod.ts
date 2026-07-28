@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiBaseUrl: 'http://54.149.239.94',
+  apiBaseUrl: 'https://api.comercializadora-guevara.com',
   clienteMostrador: 1
 };
