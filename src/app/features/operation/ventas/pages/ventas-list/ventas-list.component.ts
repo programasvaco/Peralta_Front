@@ -7,6 +7,13 @@ import { Router } from '@angular/router';
 
 import { AgGridAngular } from 'ag-grid-angular';
 import { CellClickedEvent, ColDef, GridApi, GridReadyEvent } from 'ag-grid-community';
+import {
+  ButtonDirective,
+  ModalBodyComponent,
+  ModalComponent,
+  ModalFooterComponent,
+  ModalHeaderComponent,
+} from '@coreui/angular';
 
 import { VentasListService } from '../../data/ventas-list.service';
 import { AlmacenesService } from '../../../../settings/pages/almacenes/data/almacenes.service';
@@ -14,17 +21,28 @@ import { VentaListItem, PaginatedResponse } from '../../data/ventas-list.models'
 import { Almacen } from '../../../../settings/pages/almacenes/data/almacenes.models';
 import { formatDate, getTodayString } from '../../../../../shared/utils/date.utils';
 import { AG_GRID_DEFAULT_COL_DEF } from '../../../../../shared/utils/ag-grid-defaults';
+import { UserStorageService } from '../../../../../core/storage/user-storage.service';
 
 @Component({
   selector: 'app-ventas-list',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, AgGridAngular],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    AgGridAngular,
+    ModalComponent,
+    ModalHeaderComponent,
+    ModalBodyComponent,
+    ModalFooterComponent,
+    ButtonDirective,
+  ],
   templateUrl: './ventas-list.component.html',
   styleUrl: './ventas-list.component.scss',
 })
 export class VentasListComponent {
   private ventasSvc    = inject(VentasListService);
   private almacenesSvc = inject(AlmacenesService);
+  private userStorage  = inject(UserStorageService);
   private router       = inject(Router);
   private destroyRef   = inject(DestroyRef);
   private gridApi?: GridApi;
@@ -33,6 +51,11 @@ export class VentasListComponent {
   rows      = signal<VentaListItem[]>([]);
   total     = signal(0);
   banner    = signal<{ type: 'success' | 'danger' | 'info'; text: string } | null>(null);
+
+  // Cancelación de venta
+  cancelModalVisible = signal(false);
+  ventaACancelar     = signal<VentaListItem | null>(null);
+  cancelando         = signal(false);
 
   private today(): string {
     return getTodayString();
@@ -94,14 +117,21 @@ export class VentasListComponent {
     },
     {
       headerName: 'Acciones',
-      width: 120,
+      width: 160,
       sortable: false,
       resizable: false,
-      cellRenderer: () =>
-        `<div class="ag-cell-actions">
+      cellRenderer: (p: { data?: VentaListItem }) => {
+        const cancelada    = (p.data?.estatus ?? '').toLowerCase() === 'cancelada';
+        const puedeCancelar = !cancelada && this.userStorage.hasAny(['ventas.cancelar']);
+
+        return `<div class="ag-cell-actions">
           <button class="btn btn-light btn-sm" data-action="ver">Ver</button>
           <button class="btn btn-outline-secondary btn-sm" data-action="imprimir" title="Imprimir">&#128438;</button>
-        </div>`,
+          ${puedeCancelar
+            ? `<button class="btn btn-outline-danger btn-sm" data-action="cancelar" title="Cancelar venta">&#10006;</button>`
+            : ''}
+        </div>`;
+      },
     },
   ];
 
@@ -124,8 +154,9 @@ export class VentasListComponent {
     const action = btn?.dataset['action'];
     if (!e.data || !action) return;
 
-    if (action === 'ver')      this.ver(e.data);
-    if (action === 'imprimir') this.imprimir(e.data);
+    if (action === 'ver')       this.ver(e.data);
+    if (action === 'imprimir')  this.imprimir(e.data);
+    if (action === 'cancelar')  this.openCancelModal(e.data);
   }
 
   reload() {
@@ -176,6 +207,49 @@ export class VentasListComponent {
   private imprimir(item: VentaListItem) {
     this.router.navigate(['/operation/ventas', item.id, 'ver'], {
       queryParams: { print: '1' },
+    });
+  }
+
+  openCancelModal(item: VentaListItem) {
+    this.banner.set(null);
+    this.ventaACancelar.set(item);
+    this.cancelModalVisible.set(true);
+  }
+
+  closeCancelModal() {
+    if (this.cancelando()) return;
+    this.cancelModalVisible.set(false);
+    this.ventaACancelar.set(null);
+  }
+
+  confirmarCancelacion() {
+    const venta = this.ventaACancelar();
+    if (!venta || this.cancelando()) return;
+
+    this.cancelando.set(true);
+
+    this.ventasSvc.cancelar(venta.id).subscribe({
+      next: (res) => {
+        this.cancelando.set(false);
+        this.cancelModalVisible.set(false);
+        this.ventaACancelar.set(null);
+
+        this.banner.set({
+          type: 'success',
+          text: res?.message ?? `Venta #${venta.id} cancelada correctamente.`,
+        });
+
+        this.reload();
+      },
+      error: (err) => {
+        this.cancelando.set(false);
+        this.cancelModalVisible.set(false);
+
+        this.banner.set({
+          type: 'danger',
+          text: err?.error?.message ?? `Ocurrió un error al cancelar la venta #${venta.id}. No se aplicaron cambios.`,
+        });
+      },
     });
   }
 

@@ -96,7 +96,7 @@
             <tr *ngFor="let d of c.detalles; let i = index">
               <td>{{ i + 1 }}</td>
               <td>{{ formatDateTime(d.fecha) }}</td>
-              <td>{{ d.forma_pago?.descripcion || ('FP #' + d.f_pago_id) }}</td>
+              <td>{{ d.concepto || d.forma_pago?.descripcion || ('FP #' + d.f_pago_id) }}</td>
               <td class="text-end fw-semibold text-success">
                 {{ d.importe | number:'1.2-2' }}
               </td>

@@ -11,7 +11,8 @@ export interface CxcDetalle {
   cxc_id: number;
   fecha: string;
   importe: number;
-  f_pago_id: number;
+  concepto?: string | null;
+  f_pago_id: number | null;
   forma_pago?: { id: number; descripcion: string } | null;
 }
 

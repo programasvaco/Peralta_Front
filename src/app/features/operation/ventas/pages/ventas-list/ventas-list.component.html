@@ -64,4 +64,38 @@
     ></ag-grid-angular>
   </div>
 
+  <!-- Modal de confirmación: cancelar venta -->
+  <c-modal [visible]="cancelModalVisible()" (visibleChange)="cancelModalVisible.set($event)">
+    <c-modal-header>
+      <h5 class="modal-title">Cancelar venta</h5>
+    </c-modal-header>
+
+    <c-modal-body *ngIf="ventaACancelar() as v">
+      <p>
+        ¿Seguro que deseas cancelar la venta <strong>#{{ v.id }}</strong>
+        del cliente <strong>{{ v.cliente?.nombre ?? ('#' + v.cliente_id) }}</strong>
+        por <strong>${{ v.total | number:'1.2-2' }}</strong>?
+      </p>
+      <div class="text-muted" style="font-size: 0.9rem;">
+        Esta acción devolverá la mercancía al inventario y
+        <ng-container *ngIf="v.credito; else contadoNote">
+          saldará la cuenta por cobrar asociada con un abono de cancelación.
+        </ng-container>
+        <ng-template #contadoNote>
+          registrará la salida de caja correspondiente (si el pago fue en efectivo).
+        </ng-template>
+        Esta operación no se puede deshacer.
+      </div>
+    </c-modal-body>
+
+    <c-modal-footer>
+      <button cButton color="secondary" variant="outline" (click)="closeCancelModal()" [disabled]="cancelando()">
+        Volver
+      </button>
+      <button cButton color="danger" (click)="confirmarCancelacion()" [disabled]="cancelando()">
+        {{ cancelando() ? 'Cancelando...' : 'Sí, cancelar venta' }}
+      </button>
+    </c-modal-footer>
+  </c-modal>
+
 </div>

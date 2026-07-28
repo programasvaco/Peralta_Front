@@ -39,6 +39,13 @@ export class VentasListService {
     return this.http.get<VentaShow>(`${this.base}/api/ventas/${id}`);
   }
 
+  cancelar(id: number): Observable<{ message: string; venta?: VentaShow }> {
+    return this.http.post<{ message: string; venta?: VentaShow }>(
+      `${this.base}/api/ventas/${id}/cancelar`,
+      {},
+    );
+  }
+
   porArticulo(q: ReporteVentasQuery = {}): Observable<ResumenPorArticuloResponse> {
     let params = new HttpParams();
 
