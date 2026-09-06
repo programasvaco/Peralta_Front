@@ -14,7 +14,6 @@ import { EmpleadosService } from '../../../../catalog/empleados/data/empleados.s
 import { AlmacenesService } from '../../../../settings/pages/almacenes/data/almacenes.service';
 import { LoteDisponible, VentaDetallePayload, VentaStorePayload } from '../../data/ventas.models';
 import { VentasService } from '../../data/ventas.service';
-import { PrinterService } from '../../../../../shared/services/printer.service';
 import { getTodayString } from '../../../../../shared/utils/date.utils';
 import { NumericKeyboardComponent } from '../../../../../shared/components/numeric-keyboard/numeric-keyboard.component';
 import { HorizontalResizeDirective } from '../../../../../shared/directives/horizontal-resize.directive';
@@ -48,7 +47,6 @@ export class PosVentaComponent {
   private router = inject(Router);
 
   private ventasSvc = inject(VentasService);
-  printerSvc = inject(PrinterService);
   private articulosSvc = inject(ArticulosService);
   private categoriasSvc = inject(CategoriasService);
 
@@ -993,26 +991,17 @@ export class PosVentaComponent {
 
     this.printing.set(true);
 
-    this.ventasSvc.getTicket(ventaId, 48).subscribe({
-      next: async (data) => {
-        try {
-          const total = 1 + copies;
-          for (let i = 0; i < total; i++) {
-            await this.printerSvc.print(data);
-          }
-          this.banner.set({ type: 'success', text: 'Ticket enviado a la impresora.' });
-        } catch (err: any) {
-          this.banner.set({
-            type: 'danger',
-            text: err?.message ?? 'Error al enviar a la impresora.',
-          });
-        } finally {
-          this.printing.set(false);
-        }
-      },
-      error: () => {
+    this.ventasSvc.imprimir(ventaId, { cols: 48, copies: 1 + copies }).subscribe({
+      next: () => {
         this.printing.set(false);
-        this.banner.set({ type: 'danger', text: 'Error al obtener el ticket del servidor.' });
+        this.banner.set({ type: 'success', text: 'Ticket enviado a la impresora.' });
+      },
+      error: (err) => {
+        this.printing.set(false);
+        this.banner.set({
+          type: 'danger',
+          text: err?.error?.message ?? 'Error al enviar el ticket a la impresora.',
+        });
       },
     });
   }

@@ -5,7 +5,7 @@
     <small class="text-muted">Configuración / Periféricos</small>
   </div>
 
-  <!-- Agente de impresión -->
+  <!-- Estado de los agentes de impresión -->
   <div class="peri-card">
 
     <div class="peri-card-title">
@@ -14,66 +14,36 @@
         <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
         <rect x="6" y="14" width="12" height="8"></rect>
       </svg>
-      Agente de impresión
+      Agentes de impresión
     </div>
 
     <p class="peri-card-desc">
-      Servicio local que corre en el equipo del mostrador y se comunica con la impresora USB.
-      Todos los dispositivos de la misma red envían los tickets a este agente.
+      El print-agent corre en la PC de cada sucursal y se conecta él mismo al servidor
+      (WebSocket saliente) para recibir los tickets a imprimir. Ya no hace falta configurar
+      ninguna IP ni puerto desde el navegador — cualquier dispositivo (incluidas tablets)
+      puede mandar a imprimir mientras el agente de esa sucursal esté en línea.
     </p>
 
-    <!-- Estado actual -->
-    <div class="peri-status-row">
-      <span class="peri-status-dot"
-        [class.dot-ok]="printerSvc.isConnected()"
-        [class.dot-off]="!printerSvc.isConnected()">
-      </span>
-      <span class="peri-status-label">
-        {{ printerSvc.isConnected() ? 'Conectado' : 'Sin conexión' }}
-      </span>
-      <span class="peri-status-url text-muted">— {{ printerSvc.agentUrl() }}</span>
+    <div *ngIf="loading()" class="text-muted" style="font-size:.875rem">Cargando...</div>
+    <div *ngIf="error()" class="peri-ping-result peri-ping-err">{{ error() }}</div>
+
+    <div *ngIf="!loading() && agents().length === 0 && !error()" class="text-muted" style="font-size:.875rem">
+      Todavía no hay ningún print-agent registrado.
     </div>
 
-    <!-- Formulario -->
-    <div class="peri-form">
-      <label class="form-label">URL del agente</label>
-      <div class="input-group">
-        <input
-          type="text"
-          class="form-control"
-          [value]="agentUrlDraft()"
-          (input)="onUrlInput($any($event.target).value)"
-          placeholder="http://192.168.1.10:8183"
-          spellcheck="false"
-        />
-        <button
-          type="button"
-          class="btn btn-outline-secondary"
-          (click)="testConnection()"
-          [disabled]="pinging()"
-        >
-          {{ pinging() ? 'Probando...' : 'Probar' }}
-        </button>
-        <button
-          type="button"
-          class="btn btn-primary"
-          (click)="save()"
-        >
-          Guardar
-        </button>
-      </div>
-
-      <!-- Resultado del ping -->
-      <div class="peri-ping-result peri-ping-ok" *ngIf="pingResult() === 'ok'">
-        Agente respondió correctamente.
-      </div>
-      <div class="peri-ping-result peri-ping-err" *ngIf="pingResult() === 'error'">
-        No se pudo conectar. Verifica que el agente esté corriendo en esa dirección.
-      </div>
-      <div class="peri-ping-result peri-ping-ok" *ngIf="saved() && pingResult() === null">
-        URL guardada.
+    <div class="peri-agent-list" *ngIf="agents().length > 0">
+      <div class="peri-agent-row" *ngFor="let a of agents()">
+        <span class="peri-status-dot" [class.dot-ok]="isOnline(a)" [class.dot-off]="!isOnline(a)"></span>
+        <div class="peri-agent-info">
+          <div class="peri-agent-name">{{ a.almacen?.descripcion ?? ('Sucursal #' + a.almacen_id) }}</div>
+          <div class="text-muted peri-agent-sub">{{ a.nombre }} · {{ lastSeenLabel(a) }}</div>
+        </div>
       </div>
     </div>
+
+    <button type="button" class="btn btn-outline-secondary btn-sm" style="align-self:flex-start" (click)="refresh()" [disabled]="loading()">
+      Actualizar
+    </button>
 
     <!-- Descarga -->
     <div class="peri-download-row">
@@ -86,42 +56,53 @@
         </svg>
         Descargar print-agent.exe
       </a>
-      <span class="text-muted" style="font-size:.8rem">v1.2.0 · Solo Windows · ~40 MB</span>
+      <span class="text-muted" style="font-size:.8rem">v2.0.0 · Solo Windows · ~40 MB</span>
     </div>
 
     <!-- Instrucciones -->
     <div class="peri-instructions">
-      <div class="peri-inst-title">Cómo instalar el agente</div>
+      <div class="peri-inst-title">Cómo instalar el agente en una PC nueva</div>
       <ol class="peri-inst-list">
         <li>
-          Descarga <strong>print-agent.exe</strong> y cópialo al equipo del mostrador,
+          En el servidor, genera el token de esa sucursal (una sola vez por PC):
+          <pre class="peri-code">php artisan print-agent:token &#123;almacen_id&#125; --nombre="PC Caja 1"</pre>
+          Esto imprime un token y confirma el <code>almacenId</code> a usar en el paso siguiente.
+        </li>
+        <li>
+          Descarga <strong>print-agent.exe</strong> y cópialo al equipo de la sucursal,
           por ejemplo en <code>C:\PrintAgent\</code>.
         </li>
         <li>
-          Crea el archivo <code>print-agent.config.json</code> en la misma carpeta y escribe
-          el nombre exacto de la impresora tal como aparece en Windows
-          (<em>Panel de control → Dispositivos e impresoras</em>):
+          Crea el archivo <code>print-agent.config.json</code> en la misma carpeta
+          (usa <code>print-agent.config.example.json</code> como base) con el nombre exacto
+          de la impresora tal como aparece en Windows y los datos generados en el paso 1:
           <pre class="peri-code">&#123;
-  "httpPort": 8183,
-  "printerTarget": "PRINTER:Nombre de la impresora"
+  "printerTarget": "PRINTER:Nombre de la impresora",
+  "apiBaseUrl": "https://api.comercializadora-guevara.com",
+  "reverbHost": "api.comercializadora-guevara.com",
+  "reverbPort": 443,
+  "reverbScheme": "https",
+  "reverbAppKey": "...",
+  "almacenId": 1,
+  "token": "..."
 &#125;</pre>
-          También puedes usar IP de red <code>"192.168.1.100:9100"</code> o puerto serie <code>"COM3"</code>.
+          También se puede usar IP de red <code>"192.168.1.100:9100"</code> o puerto serie <code>"COM3"</code>
+          como <code>printerTarget</code>.
         </li>
         <li>
           Abre <strong>CMD o PowerShell como Administrador</strong> y ejecuta:
           <pre class="peri-code">C:\PrintAgent\print-agent.exe install</pre>
           Esto crea una <strong>tarea programada</strong> que arranca el agente automáticamente
-          con Windows, incluso sin iniciar sesión.
+          con Windows, incluso sin iniciar sesión. El agente se conecta él solo al servidor;
+          no hace falta abrir ningún puerto en esa PC ni en el router.
         </li>
         <li>
-          Pulsa <strong>Probar</strong> en esta pantalla para verificar que el agente responde.
-          Si todo está bien verás el mensaje <em>"Agente respondió correctamente"</em>.
+          Para probar la impresora directamente desde esa PC (sin pasar por el servidor):
+          <pre class="peri-code">C:\PrintAgent\print-agent.exe test</pre>
         </li>
         <li>
-          URL según el dispositivo que accede:<br />
-          · Mismo equipo del mostrador → <code>http://localhost:8183</code><br />
-          · Tablets / celulares en la misma red → <code>http://&lt;IP-del-mostrador&gt;:8183</code>
-          &nbsp;<span class="text-muted">(ej. <code>http://192.168.1.10:8183</code>)</span>
+          Refresca esta pantalla: la sucursal debería aparecer arriba con el punto en verde
+          unos segundos después de iniciar el agente.
         </li>
         <li>
           Para desinstalar, abre CMD como Administrador y ejecuta:

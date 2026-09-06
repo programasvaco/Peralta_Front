@@ -18,5 +18,8 @@
   },
   "devDependencies": {
     "@yao-pkg/pkg": "^5.12.0"
+  },
+  "dependencies": {
+    "pusher-js": "^8.6.0"
   }
 }

@@ -13,7 +13,6 @@ import { EmpaquesService } from '../../data/empaques.service';
 import { Empaque, EmpaqueMovimiento } from '../../data/empaques.models';
 import { ClientesService } from '../../../../catalog/clientes/data/clientes.service';
 import { Cliente } from '../../../../catalog/clientes/data/clientes.models';
-import { PrinterService } from '../../../../../shared/services/printer.service';
 
 type FieldErrors = Record<string, string[]>;
 
@@ -77,7 +76,6 @@ export class MovimientoDialogComponent implements OnChanges {
     private fb:          FormBuilder,
     private empaquesSvc: EmpaquesService,
     private clientesSvc: ClientesService,
-    private printerSvc:  PrinterService,
   ) {}
 
   ngOnChanges(changes: SimpleChanges) {
@@ -227,16 +225,12 @@ export class MovimientoDialogComponent implements OnChanges {
     });
   }
 
-  async printTicket(cols = 48) {
+  printTicket(cols = 48) {
     const mov = this.savedMovimiento();
     if (!mov?.id) return;
     this.printing.set(true);
-    this.empaquesSvc.getTicket(mov.id, cols).subscribe({
-      next: async data => {
-        try { await this.printerSvc.print(data); } catch { /* silencioso */ }
-        this.printing.set(false);
-        this.close();
-      },
+    this.empaquesSvc.imprimir(mov.id, { cols }).subscribe({
+      next: () => { this.printing.set(false); this.close(); },
       error: () => { this.printing.set(false); this.close(); },
     });
   }

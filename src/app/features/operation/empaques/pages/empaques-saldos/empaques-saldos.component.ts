@@ -7,7 +7,6 @@ import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { EmpaquesService } from '../../data/empaques.service';
 import { Empaque, EmpaqueClienteSaldo, EmpaqueMovimiento } from '../../data/empaques.models';
 import { MovimientoDialogComponent } from '../movimiento-dialog/movimiento-dialog.component';
-import { PrinterService } from '../../../../../shared/services/printer.service';
 import { getTodayString } from '../../../../../shared/utils/date.utils';
 import { AG_GRID_DEFAULT_COL_DEF } from '../../../../../shared/utils/ag-grid-defaults';
 
@@ -118,7 +117,6 @@ export class EmpaquesSaldosComponent implements OnInit {
 
   constructor(
     private svc: EmpaquesService,
-    private printerSvc: PrinterService,
   ) {}
 
   ngOnInit() {
@@ -239,25 +237,20 @@ export class EmpaquesSaldosComponent implements OnInit {
 
   // ── Reporte impreso (ESC/POS) ──────────────────────────────────────────
 
-  async imprimirReporte() {
+  imprimirReporte() {
     const sel = this.selectedSaldo();
     if (!sel || !this.fechaInicio() || !this.fechaFin()) return;
 
     this.printingReporte.set(true);
     this.errorReporte.set(null);
 
-    this.svc.getReporteTicket({
+    this.svc.imprimirReporte({
       cliente_id: sel.cliente_id,
       empaque_id: sel.empaque_id,
       fecha_inicio: this.fechaInicio(),
       fecha_fin: this.fechaFin(),
     }).subscribe({
-      next: async data => {
-        try {
-          await this.printerSvc.print(data);
-        } catch {
-          this.errorReporte.set('No se pudo conectar con la impresora.');
-        }
+      next: () => {
         this.printingReporte.set(false);
       },
       error: () => {

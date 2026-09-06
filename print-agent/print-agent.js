@@ -1,15 +1,20 @@
 /**
- * Abarrotes María — Print Agent v1.2.0
+ * Abarrotes María — Print Agent v2.0.0
  *
- * Servidor HTTP local que recibe tickets ESC/POS desde el navegador
- * y los envía a la impresora (nombre Windows, COM o red TCP).
+ * Cliente WebSocket saliente: se conecta a Laravel Reverb, se suscribe al
+ * canal privado de su sucursal y, al recibir un ticket ESC/POS, lo envía a
+ * la impresora (nombre Windows, COM o red TCP). Ya no expone ningún puerto
+ * ni servidor local — la conexión siempre la inicia esta PC hacia el
+ * servidor, así que no hay problema de mixed content ni de puertos abiertos.
  *
  * Uso:
- *   print-agent.exe              → arranca el servidor
+ *   print-agent.exe              → arranca el agente
  *   print-agent.exe install      → instala como servicio de Windows
  *   print-agent.exe uninstall    → elimina el servicio de Windows
  *
  * Configuración → print-agent.config.json en la misma carpeta que el .exe
+ * (ver print-agent.config.example.json). El token y el almacenId se generan
+ * una sola vez en el backend con: php artisan print-agent:token {almacen_id}
  *
  * Formatos de printerTarget:
  *   PRINTER:Nombre Impresora     → spooler de Windows (recomendado para USB)
@@ -27,14 +32,16 @@ process.on('unhandledRejection', (reason) => {
   console.error('[PROMESA RECHAZADA]', reason);
 });
 
-const http              = require('http');
 const fs                = require('fs');
 const net               = require('net');
 const os                = require('os');
 const path              = require('path');
+const https             = require('https');
+const httpModule        = require('http');
 const { spawnSync, execSync } = require('child_process');
+const Pusher             = require('pusher-js/node');
 
-const VERSION  = '1.2.0';
+const VERSION  = '2.0.0';
 const SVC_NAME = 'AbarrotesPrintAgent';
 
 // ── Configuración ─────────────────────────────────────────────────────────────
@@ -43,14 +50,22 @@ const exeDir     = path.dirname(process.execPath);
 const configFile = path.join(exeDir, 'print-agent.config.json');
 
 const config = {
-  httpPort:      8183,
   printerTarget: 'PRINTER:Nombre de la impresora',
+  apiBaseUrl:    'https://api.comercializadora-guevara.com',
+  reverbHost:    'api.comercializadora-guevara.com',
+  reverbPort:    443,
+  reverbScheme:  'https',
+  reverbAppKey:  '',
+  almacenId:     null,
+  token:         '',
 };
 
 try {
   if (fs.existsSync(configFile)) {
     Object.assign(config, JSON.parse(fs.readFileSync(configFile, 'utf8')));
     console.log(`Config cargada: ${configFile}`);
+  } else {
+    console.warn(`No existe ${configFile}. Copie print-agent.config.example.json y complete sus datos.`);
   }
 } catch (e) {
   console.warn(`No se pudo leer ${configFile}: ${e.message}`);
@@ -98,6 +113,19 @@ if (cmd === 'uninstall') {
     process.exit(1);
   }
   process.exit(0);
+}
+
+// print-agent.exe printers  → lista impresoras Windows visibles (diagnóstico local)
+if (cmd === 'printers') {
+  listPrinters().forEach((name) => console.log(name));
+  process.exit(0);
+}
+
+// print-agent.exe test  → imprime un ticket de prueba en printerTarget (diagnóstico local)
+if (cmd === 'test') {
+  printBytes(buildTestTicket())
+    .then(() => { console.log('Ticket de prueba enviado.'); process.exit(0); })
+    .catch((e) => { console.error('Error:', e.message); process.exit(1); });
 }
 
 // ── Impresión vía spooler Windows ─────────────────────────────────────────────
@@ -300,124 +328,161 @@ function buildTestTicket() {
   return Buffer.concat(parts);
 }
 
-// ── Servidor HTTP ─────────────────────────────────────────────────────────────
+// ── Cliente HTTP mínimo (para /broadcasting/auth y el heartbeat) ─────────────
 
-const CORS = {
-  'Access-Control-Allow-Origin':          '*',
-  'Access-Control-Allow-Headers':         'Content-Type',
-  'Access-Control-Allow-Methods':         'GET, POST, OPTIONS',
-  'Access-Control-Allow-Private-Network': 'true',
-};
+function httpPostJson(urlString, bodyObj, extraHeaders) {
+  return new Promise((resolve, reject) => {
+    let target;
+    try {
+      target = new URL(urlString);
+    } catch (e) {
+      reject(e);
+      return;
+    }
 
-function send(res, status, body) {
+    const mod  = target.protocol === 'https:' ? https : httpModule;
+    const body = JSON.stringify(bodyObj || {});
+
+    const req = mod.request({
+      hostname: target.hostname,
+      port:     target.port || (target.protocol === 'https:' ? 443 : 80),
+      path:     target.pathname + target.search,
+      method:   'POST',
+      timeout:  10000,
+      headers: Object.assign({
+        'Content-Type':   'application/json',
+        'Content-Length': Buffer.byteLength(body),
+        'Accept':         'application/json',
+      }, extraHeaders || {}),
+    }, (res) => {
+      const chunks = [];
+      res.on('data', (c) => chunks.push(c));
+      res.on('end', () => {
+        const raw = Buffer.concat(chunks).toString('utf8');
+        let json = null;
+        try { json = JSON.parse(raw); } catch { /* respuesta no-JSON */ }
+        resolve({ status: res.statusCode, json, raw });
+      });
+    });
+
+    req.on('timeout', () => req.destroy(new Error(`Timeout llamando a ${urlString}`)));
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+}
+
+// ── Autorización de canal privado contra /broadcasting/auth de Laravel ───────
+
+function reverbAuthorizer(channel) {
+  return {
+    authorize(socketId, callback) {
+      httpPostJson(`${config.apiBaseUrl}/broadcasting/auth`, {
+        socket_id:    socketId,
+        channel_name: channel.name,
+      }, {
+        Authorization: `Bearer ${config.token}`,
+      })
+        .then(({ status, json, raw }) => {
+          if (status >= 200 && status < 300 && json && json.auth) {
+            callback(false, json);
+          } else {
+            callback(true, new Error(`Auth de canal falló (HTTP ${status}): ${raw.slice(0, 200)}`));
+          }
+        })
+        .catch((err) => callback(true, err));
+    },
+  };
+}
+
+// ── Heartbeat: le avisa al backend que este agente sigue vivo ────────────────
+
+function sendHeartbeat() {
+  if (!config.token) return;
+  httpPostJson(`${config.apiBaseUrl}/api/print-agents/heartbeat`, {}, {
+    Authorization: `Bearer ${config.token}`,
+  }).catch((e) => console.warn('[HEARTBEAT] No se pudo avisar al servidor:', e.message));
+}
+
+// ── Job de impresión recibido por WebSocket ───────────────────────────────────
+
+async function handlePrintJob(payload) {
+  const jobId   = payload && payload.job_id;
+  const dataB64 = payload && payload.data;
+
+  if (!dataB64) {
+    console.error(`[PRINT] Job ${jobId ?? '?'} llegó sin datos.`);
+    return;
+  }
+
+  const bytes  = Buffer.from(dataB64, 'base64');
+  const copies = Math.max(1, Math.min(5, Number(payload.copies) || 1));
+
+  console.log(`[PRINT] Job ${jobId}: imprimiendo ${copies} copia(s)...`);
   try {
-    Object.entries(CORS).forEach(([k, v]) => res.setHeader(k, v));
-    res.setHeader('Content-Type', 'application/json');
-    res.writeHead(status);
-    res.end(JSON.stringify(body));
+    for (let i = 0; i < copies; i++) {
+      await printBytes(bytes);
+    }
+    console.log(`[PRINT] Job ${jobId}: OK`);
   } catch (e) {
-    console.error('[HTTP] Error enviando respuesta:', e.message);
+    console.error(`[PRINT] Job ${jobId}: error -`, e.message);
   }
 }
 
-const server = http.createServer((req, res) => {
-  try {
-    // Preflight CORS
-    if (req.method === 'OPTIONS') {
-      Object.entries(CORS).forEach(([k, v]) => res.setHeader(k, v));
-      res.writeHead(204);
-      res.end();
-      return;
-    }
+// ── Conexión WebSocket saliente a Reverb ──────────────────────────────────────
+// (si se invocó con un subcomando como "test", ya se resolvió arriba: no conectar)
 
-    // GET /ping
-    if (req.method === 'GET' && req.url === '/ping') {
-      send(res, 200, { ok: true, version: VERSION, target: config.printerTarget });
-      return;
-    }
+if (cmd) return;
 
-    // GET /printers
-    if (req.method === 'GET' && req.url === '/printers') {
-      const list = listPrinters();
-      send(res, 200, { printers: list });
-      return;
-    }
+console.log('');
+console.log('  ╔══════════════════════════════════════════╗');
+console.log(`  ║  Abarrotes María — Print Agent ${VERSION}    ║`);
+console.log('  ╚══════════════════════════════════════════╝');
+console.log('');
+console.log(`  Impresora : ${config.printerTarget}`);
+console.log(`  Sucursal  : ${config.almacenId ?? '(sin configurar)'}`);
+console.log(`  Reverb    : ${config.reverbScheme}://${config.reverbHost}:${config.reverbPort}`);
+console.log('');
 
-    // GET /test
-    if (req.method === 'GET' && req.url === '/test') {
-      console.log('[TEST] Iniciando impresión de prueba...');
-      printBytes(buildTestTicket())
-        .then(() => {
-          console.log('[TEST] OK');
-          send(res, 200, { ok: true, message: 'Ticket de prueba enviado.' });
-        })
-        .catch(e => {
-          console.error('[TEST] Error:', e.message);
-          send(res, 500, { error: e.message });
-        });
-      return;
-    }
+if (!config.almacenId || !config.token || !config.reverbAppKey) {
+  console.error('  Falta almacenId, token o reverbAppKey en print-agent.config.json.');
+  console.error('  El agente seguirá corriendo pero no podrá suscribirse hasta corregir la configuración.');
+  console.error('');
+}
 
-    // POST /print
-    if (req.method === 'POST' && req.url === '/print') {
-      const chunks = [];
-      req.on('data', chunk => chunks.push(chunk));
-      req.on('end', () => {
-        Promise.resolve()
-          .then(() => {
-            const bodyBuf = Buffer.concat(chunks);
-            const ct = (req.headers['content-type'] || '').toLowerCase();
+const usesTLS = config.reverbScheme === 'https';
 
-            if (ct.includes('application/octet-stream')) {
-              return printBytes(bodyBuf);
-            }
-
-            // Fallback: JSON { data: "<base64>" }
-            const { data } = JSON.parse(bodyBuf.toString('utf8'));
-            if (!data) throw new Error('Falta el campo "data" (base64).');
-            return printBytes(Buffer.from(data, 'base64'));
-          })
-          .then(() => send(res, 200, { ok: true }))
-          .catch(e => {
-            console.error('[PRINT] Error:', e.message);
-            send(res, 500, { error: e.message });
-          });
-      });
-      req.on('error', (e) => send(res, 400, { error: e.message }));
-      return;
-    }
-
-    send(res, 404, { error: 'Ruta no encontrada.' });
-  } catch (e) {
-    console.error('[HTTP] Error en handler:', e.message);
-    send(res, 500, { error: 'Error interno del servidor.' });
-  }
+const pusher = new Pusher(config.reverbAppKey, {
+  wsHost:             config.reverbHost,
+  wsPort:             config.reverbPort,
+  wssPort:            config.reverbPort,
+  forceTLS:           usesTLS,
+  enabledTransports:  usesTLS ? ['wss'] : ['ws'],
+  disableStats:       true,
+  cluster:            'mt1', // no lo usa Reverb, pero la librería lo exige
+  authorizer:         reverbAuthorizer,
 });
 
-server.on('error', (e) => {
-  if (e.code === 'EADDRINUSE') {
-    console.error(`Puerto ${config.httpPort} ya está en uso.`);
-  } else {
-    console.error('Error del servidor:', e.message);
-  }
-  process.exit(1);
+pusher.connection.bind('state_change', (states) => {
+  console.log(`[WS] ${states.previous} → ${states.current}`);
+});
+pusher.connection.bind('connected', sendHeartbeat);
+pusher.connection.bind('error', (err) => {
+  console.error('[WS] Error de conexión:', JSON.stringify(err));
 });
 
-server.listen(config.httpPort, '0.0.0.0', () => {
-  console.log('');
-  console.log('  ╔══════════════════════════════════════════╗');
-  console.log(`  ║  Abarrotes María — Print Agent ${VERSION}  ║`);
-  console.log('  ╚══════════════════════════════════════════╝');
-  console.log('');
-  console.log(`  Puerto HTTP  : ${config.httpPort}`);
-  console.log(`  Impresora    : ${config.printerTarget}`);
-  console.log('');
-  console.log('  Rutas:');
-  console.log('    GET  /ping      → health check');
-  console.log('    GET  /printers  → lista impresoras Windows');
-  console.log('    GET  /test      → imprime ticket de prueba');
-  console.log('    POST /print     → imprime ticket (base64)');
-  console.log('');
-  console.log('  Agente listo.');
-  console.log('');
+const channelName = `private-print-agent.${config.almacenId}`;
+const channel = pusher.subscribe(channelName);
+
+channel.bind('pusher:subscription_succeeded', () => {
+  console.log(`[WS] Suscrito a ${channelName}. Agente listo.`);
 });
+channel.bind('pusher:subscription_error', (err) => {
+  console.error(`[WS] No se pudo suscribir a ${channelName}:`, JSON.stringify(err));
+});
+channel.bind('print.job', (payload) => {
+  handlePrintJob(payload).catch((e) => console.error('[PRINT] Error inesperado:', e.message));
+});
+
+// Heartbeat periódico además del que se manda al conectar/reconectar.
+setInterval(sendHeartbeat, 5 * 60 * 1000);

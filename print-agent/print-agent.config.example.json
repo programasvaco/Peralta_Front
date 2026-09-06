@@ -1,4 +1,10 @@
 {
-  "httpPort": 8183,
-  "printerTarget": "PRINTER:Nombre exacto de la impresora en Windows"
+  "printerTarget": "PRINTER:Nombre exacto de la impresora en Windows",
+  "apiBaseUrl": "https://api.comercializadora-guevara.com",
+  "reverbHost": "api.comercializadora-guevara.com",
+  "reverbPort": 443,
+  "reverbScheme": "https",
+  "reverbAppKey": "pegar aquí REVERB_APP_KEY del .env del backend",
+  "almacenId": 1,
+  "token": "pegar aquí el token generado con: php artisan print-agent:token {almacen_id}"
 }

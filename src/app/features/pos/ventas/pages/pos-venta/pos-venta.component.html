@@ -18,18 +18,6 @@
     </div>
 
     <div class="pos-right">
-      <!-- Impresora activa -->
-      <div class="printer-status-btn" [class.printer-ok]="printerSvc.isConnected()"
-        [class.printer-none]="!printerSvc.isConnected()"
-        title="Agente: {{ printerSvc.agentUrl() }}">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="6 9 6 2 18 2 18 9"></polyline>
-          <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-          <rect x="6" y="14" width="12" height="8"></rect>
-        </svg>
-        <span class="printer-name">Impresora</span>
-      </div>
-
       <button type="button" class="action-btn" (click)="nuevaVenta()" title="Nueva venta">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -468,9 +456,6 @@
 
     <div class="confirm-body">
       <div class="confirm-message">La venta fue registrada correctamente.</div>
-      <div class="confirm-sub">
-        Agente: <strong>{{ printerSvc.agentUrl() }}</strong>
-      </div>
 
       <div class="print-copies-group">
         <span class="print-copies-label">Copias</span>

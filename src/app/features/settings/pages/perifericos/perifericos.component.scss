@@ -54,6 +54,21 @@
 .peri-status-label { font-weight: 500; }
 .peri-status-url   { font-size: 0.8rem; }
 
+.peri-agent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.peri-agent-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.peri-agent-name { font-weight: 500; font-size: 0.9rem; }
+.peri-agent-sub  { font-size: 0.78rem; }
+
 .peri-form {
   display: flex;
   flex-direction: column;

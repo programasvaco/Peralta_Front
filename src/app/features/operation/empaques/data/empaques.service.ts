@@ -1,31 +1,13 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
 
 import { environment } from '../../../../../enviroments/environment';
 import { Empaque, EmpaqueClienteSaldo, EmpaqueMovimiento, MovimientoPayload } from './empaques.models';
 
-function utf8ToCp850(input: ArrayBuffer): ArrayBuffer {
-  const map2: Record<number, Record<number, number>> = {
-    0xC2: { 0xA1: 0xAD, 0xBF: 0xA8, 0xAA: 0xA6, 0xBA: 0xA7, 0xAB: 0xAE, 0xBB: 0xAF, 0xB0: 0xF8 },
-    0xC3: {
-      0x80: 0x85, 0x81: 0xB5, 0x82: 0x83, 0x84: 0x8E, 0x87: 0x80, 0x89: 0x90,
-      0x91: 0xA5, 0x93: 0xE0, 0x94: 0x99, 0x99: 0x9A, 0x9A: 0xE9,
-      0xA0: 0xA0, 0xA1: 0x85, 0xA7: 0x87, 0xA9: 0x82, 0xAD: 0xA1,
-      0xB1: 0xA4, 0xB2: 0xA2, 0xB3: 0xA2, 0xB6: 0x94, 0xBA: 0xA3, 0xBC: 0x81,
-    },
-  };
-  const src = new Uint8Array(input);
-  const dst = new Uint8Array(src.length);
-  let si = 0, di = 0;
-  while (si < src.length) {
-    const b0 = src[si], b1 = src[si + 1];
-    const cp850 = map2[b0]?.[b1];
-    if (cp850 !== undefined) { dst[di++] = cp850; si += 2; }
-    else { dst[di++] = b0; si++; }
-  }
-  return dst.buffer.slice(0, di);
+export interface ImprimirResponse {
+  ok: boolean;
+  job_id: string;
 }
 
 export interface SaldosQuery {
@@ -78,30 +60,33 @@ export class EmpaquesService {
     return this.http.post(`${this.base}/api/empaque-movimientos`, payload);
   }
 
-  getTicket(movimientoId: number, cols: number = 48): Observable<ArrayBuffer> {
-    return this.http.get(`${this.base}/api/empaque-movimientos/${movimientoId}/ticket`, {
-      params: { cols: String(cols) },
-      responseType: 'arraybuffer',
-    }).pipe(map(utf8ToCp850));
+  /**
+   * Pide al backend generar el ticket del movimiento y despacharlo por
+   * WebSocket (Reverb) al print-agent de la sucursal activa.
+   */
+  imprimir(movimientoId: number, opts: { cols?: number; copies?: number } = {}): Observable<ImprimirResponse> {
+    const { cols = 48, copies = 1 } = opts;
+    return this.http.post<ImprimirResponse>(`${this.base}/api/empaque-movimientos/${movimientoId}/imprimir`, {}, {
+      params: { cols: String(cols), copies: String(copies) },
+    });
   }
 
-  getReporteTicket(q: {
+  imprimirReporte(q: {
     cliente_id: number;
     empaque_id?: number | null;
     fecha_inicio: string;
     fecha_fin: string;
     cols?: number;
-  }): Observable<ArrayBuffer> {
+    copies?: number;
+  }): Observable<ImprimirResponse> {
     let params = new HttpParams()
       .set('cliente_id', String(q.cliente_id))
       .set('fecha_inicio', q.fecha_inicio)
       .set('fecha_fin', q.fecha_fin)
-      .set('cols', String(q.cols ?? 48));
+      .set('cols', String(q.cols ?? 48))
+      .set('copies', String(q.copies ?? 1));
     if (q.empaque_id != null) params = params.set('empaque_id', String(q.empaque_id));
 
-    return this.http.get(`${this.base}/api/empaque-movimientos/reporte/ticket`, {
-      params,
-      responseType: 'arraybuffer',
-    }).pipe(map(utf8ToCp850));
+    return this.http.post<ImprimirResponse>(`${this.base}/api/empaque-movimientos/reporte/imprimir`, {}, { params });
   }
 }
