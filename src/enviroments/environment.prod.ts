@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiBaseUrl: 'https://api.comercializadora-guevara.com',
+  apiBaseUrl: 'https://peraltaback-production.up.railway.app',
   clienteMostrador: 1
 };
