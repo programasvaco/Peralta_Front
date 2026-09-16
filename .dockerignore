@@ -1,0 +1,12 @@
+.git
+.github
+node_modules
+dist
+.angular
+docs
+print-agent
+karma.conf.js
+CHANGELOG.md
+README.md
+.vscode
+.idea
